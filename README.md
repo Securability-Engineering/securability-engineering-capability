@@ -1,6 +1,6 @@
 # securable-claude-plugin
 
-A Claude Code plugin offering secure code generation and securability analysis through application of the OWASP FIASSE: The Securable framework. Also, part of (OWASP Secure Agent Playbook)[https://github.com/OWASP/secure-agent-playbook].
+A Claude Code plugin offering secure code generation and securability analysis through application of the OWASP FIASSE: The Securable framework. Also, part of [OWASP Secure Agent Playbook](https://github.com/OWASP/secure-agent-playbook).
 
 ## Overview
 
