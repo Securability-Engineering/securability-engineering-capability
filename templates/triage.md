@@ -143,6 +143,7 @@ securability_triage:
 
 - **SSEM attributes enforced**: [attributes this triage touched]
 - **Trust boundaries**: [boundaries where confirmed findings concentrate]
+- **ASVS references**: [requirement IDs confirmed or gap IDs recorded]
 - **Trade-offs**: [any reordering vs scanner severity, coverage gaps that limit confidence]
 ````
 

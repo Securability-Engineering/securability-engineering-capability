@@ -166,8 +166,8 @@ When a group of findings matches one of these patterns, tag it with the exact st
 |---|---|---|---|---|
 | TG-01 | "Trust boundary input handling" (S4.4.1) | Integrity | 4 | Systemic |
 | TG-02 | "Token verification under-specified" (S4.4.1.2) | Authenticity | 1 | Local |
-| TG-03 | "Silent failure" (S3.2.1.4) | Observability | 3 | False positive |
-| TG-04 | "Unbounded resource consumption" (S3.2.3.1) | Availability | 3 | Needs human |
+| TG-03 | "Silent failure" (S3.2.1.4) | Observability | 3 | Local |
+| TG-04 | "Unbounded resource consumption" (S3.2.3.1) | Availability | 3 | Local |
 
 TG-03 groups the `securable-bare-except-pass` hits — on inspection, all three are in `tests/conftest.py` test fixtures, not production code.
 
@@ -189,7 +189,7 @@ pip-audit findings (dependency vulnerabilities) are noted in the inventory but d
 
 **Step 5 — Fix candidates**:
 
-- TG-01: Replace f-string SQL with parameterized queries; add timeout to `_call_payment_api`. Shape: see generation skill anti-pattern table. Effort: **M**. In scope: yes. Route: `securability-remediation`.
+- TG-01: Replace f-string SQL with parameterized queries. Shape: see generation skill anti-pattern table. Effort: **M**. In scope: yes. Route: `securability-remediation`.
 - TG-02: Pin `algorithms=["RS256"]`, validate `aud` and `iss`. Effort: **S**. In scope: yes. Route: `securability-remediation`.
 
 **Step 6 — Priority order**: TG-01 first (systemic, Integrity, 4 boundary-adjacent sinks), then TG-02 (local but Authenticity on every authenticated request).

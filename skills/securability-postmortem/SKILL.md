@@ -68,7 +68,7 @@ Identify the SSEM attribute(s) whose weakness allowed the incident. For each:
 
 - Name the attribute and its FIASSE section (e.g., Integrity — FIASSE v1.1 S3.2.3.2)
 - Cite the specific principle violated using the pack's anti-pattern tag vocabulary (e.g., "Isolated Integrity violation" — FIASSE v1.1 S4.4.1.2)
-- Classify as **systemic** or **local** (systemic: the pattern is the codebase's default; local: a specific deviation from an otherwise sound practice — see securability-engineering-review SKILL.md for the full rubric): systemic means the pattern is the codebase's default; local means a specific deviation from an otherwise sound practice
+- Classify as **systemic** or **local** (systemic: the pattern is the codebase's default; local: a specific deviation from an otherwise sound practice — see securability-engineering-review SKILL.md for the full rubric)
 
 Do not install new tools uninvited; where such tooling is absent, that absence is itself evidence for Testability and Observability.
 
