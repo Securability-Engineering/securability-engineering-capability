@@ -294,6 +294,8 @@ def validate_policy(path: Path, rep: Report) -> None:
     if report_dir is not None:
         if not isinstance(report_dir, str) or not report_dir.strip():
             rep.error(f"{path}: 'report_dir' must be a non-empty string")
+        elif report_dir.startswith("/"):
+            rep.error(f"{path}: 'report_dir' must be a relative path (must not start with '/')")
         elif ".." in report_dir.split("/"):
             rep.error(f"{path}: 'report_dir' must not contain '..' segments")
 
@@ -361,6 +363,11 @@ def validate_policy(path: Path, rep: Report) -> None:
             for key in review:
                 if key not in {"max_not_assessed_for_score", "surrounding_context_lines"}:
                     rep.error(f"{path}: unknown review key '{key}'")
+            for rfield in ("max_not_assessed_for_score", "surrounding_context_lines"):
+                rv = review.get(rfield)
+                if rv is not None:
+                    if not isinstance(rv, int) or isinstance(rv, bool) or rv < 0:
+                        rep.error(f"{path}: review.{rfield} must be a non-negative integer")
 
 
 def validate_dependencies(path: Path, requirement_feature_ids: set[str] | None, rep: Report) -> None:

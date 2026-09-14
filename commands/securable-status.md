@@ -1,6 +1,6 @@
 ---
 description: Show the status of the project's .securable/ contract (requirements and boundaries)
-argument-hint: "[--summary|--coverage|--gaps|--json] [paths]"
+argument-hint: "[--json] [--changed-files <paths or @file>] [--fail-on-unverified-touched]"
 allowed-tools: Bash(python3 *)
 ---
 

@@ -129,7 +129,7 @@ Per FIASSE v1.1 SA.4, close with the score, the rationale, and a short list of p
 
 ### 15. Persist per policy and emit escalations
 
-If `.securable/policy.yaml` exists, read `mode` and `report_dir`. When the user asks to persist, write the report to `<report_dir>/<YYYY-MM-DD>-<scope>.md`. Emit the Escalations section (design-level findings routed to `threat-modeling`) and record the count in the machine-readable score block.
+Persist the report and emit escalations per the skill's policy-awareness step (see [skills/securability-engineering-review/SKILL.md](../../skills/securability-engineering-review/SKILL.md)).
 
 ## Quality Gates
 

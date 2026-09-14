@@ -149,6 +149,19 @@ def main() -> int:
             print("ok  valid-dependencies accepted")
 
     # --- Policy invalid mutations ---
+    # Base policy with gates enabled, built from scratch to avoid duplicate-key fragility.
+    GATE_POLICY_BASE = (
+        "securable_contract: 1\n"
+        "system: Customer portal\n"
+        "mode: gate\n"
+        "report_dir: .securable/reports\n"
+        "gates:\n"
+        "  - id: G-01\n"
+        "    description: Block merges with any CRITICAL or HIGH finding.\n"
+        "    when:\n"
+        "      severity: [CRITICAL, HIGH]\n"
+    )
+
     POLICY_INVALID = [
         (
             "policy-bad-mode",
@@ -157,28 +170,41 @@ def main() -> int:
         ),
         (
             "policy-duplicate-gate-id",
-            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: First gate.\n    when:\n      severity: [HIGH]\n  - id: G-01\n    description: Duplicate.\n    when:\n      severity: [LOW]\n",
+            lambda t: GATE_POLICY_BASE + "  - id: G-01\n    description: Duplicate.\n    when:\n      severity: [LOW]\n",
             "duplicate gate id G-01",
         ),
         (
             "policy-bad-gate-id",
-            lambda t: t + "\nmode: gate\ngates:\n  - id: GATE-1\n    description: Bad id.\n    when:\n      severity: [HIGH]\n",
+            lambda t: GATE_POLICY_BASE.replace("id: G-01", "id: GATE-1"),
             "must match G-<n>",
         ),
         (
             "policy-bad-severity",
-            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: Bad sev.\n    when:\n      severity: [EXTREME]\n",
+            lambda t: GATE_POLICY_BASE.replace("severity: [CRITICAL, HIGH]", "severity: [EXTREME]"),
             "severity 'EXTREME' not in",
         ),
         (
             "policy-bad-attribute",
-            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: Bad attr.\n    when:\n      attribute_below:\n        authorization: 3\n",
+            lambda t: GATE_POLICY_BASE.replace(
+                "      severity: [CRITICAL, HIGH]",
+                "      attribute_below:\n        authorization: 3",
+            ),
             "not in the ten SSEM attributes",
         ),
         (
             "policy-report-dir-dotdot",
             lambda t: t.replace("report_dir: .securable/reports", "report_dir: ../outside/reports"),
             "must not contain '..' segments",
+        ),
+        (
+            "policy-report-dir-absolute",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: /etc/passwd"),
+            "must be a relative path",
+        ),
+        (
+            "policy-review-bad-type",
+            lambda t: t.replace("max_not_assessed_for_score: 2", "max_not_assessed_for_score: not_a_number"),
+            "must be a non-negative integer",
         ),
     ]
 

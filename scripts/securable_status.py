@@ -61,7 +61,7 @@ def gather_status(directory: Path) -> dict:
 
     req_data = load_yaml_file(req_path)
     if req_data is None:
-        print(f"error: {req_path} not found (required)", file=sys.stderr)
+        print(f"error: {req_path} not found — the status script requires requirements.yaml even when other contract files exist", file=sys.stderr)
         sys.exit(1)
 
     bnd_data = load_yaml_file(bnd_path)
@@ -77,6 +77,9 @@ def gather_status(directory: Path) -> dict:
         unverified_ids = []
         for r in reqs:
             status = r.get("status", "planned")
+            if status not in counts:
+                print(f"warning: {fid}: unknown status '{status}', counting as planned", file=sys.stderr)
+                status = "planned"
             counts[status] = counts.get(status, 0) + 1
             if status != "verified":
                 unverified_ids.append(r.get("id", "?"))
@@ -93,6 +96,9 @@ def gather_status(directory: Path) -> dict:
     cc_unverified = []
     for r in cc_reqs:
         status = r.get("status", "planned")
+        if status not in cc_counts:
+            print(f"warning: cross_cutting: unknown status '{status}', counting as planned", file=sys.stderr)
+            status = "planned"
         cc_counts[status] = cc_counts.get(status, 0) + 1
         if status != "verified":
             cc_unverified.append(r.get("id", "?"))

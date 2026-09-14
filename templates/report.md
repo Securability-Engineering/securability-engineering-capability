@@ -172,8 +172,8 @@ before they become development commitments (FIASSE v1.1 SA.4). Otherwise omit.]
 Design-level findings that belong in the threat model rather than in code-level fixes (FIASSE v1.1 S5.2). For each:
 
 ```
-- **[Title]** — Boundary: [boundary id or descriptive name]
-  Question: [one-line question for the threat model]
+- **[Title]** — Boundary: [boundary id from .securable/boundaries.yaml, or a descriptive name]
+  Question: [one-line question for the threat model — e.g., "What is the intended trust level of the webhook source?"]
   Route to: threat-modeling
 ```
 
@@ -335,4 +335,4 @@ For findings *not* fixed within the iteration cap, list them with severity, attr
 - Every expected improvement names its attribute. A bare "+X.X points" is not actionable.
 - Attribute scores in the machine-readable block are **integers** (0–10). Composite math is one decimal. This eliminates false precision that made small run-to-run noise look like real change.
 - The `escalations` count and the Escalations section route design-level findings to the threat model (FIASSE v1.1 S5.2) rather than treating them as code-level fixes.
-- When `.securable/policy.yaml` specifies `mode: gate`, the report states which gate thresholds would trigger but never blocks — gating is a CI/policy decision (FIASSE v1.1 S5.2.3).
+- When `.securable/policy.yaml` specifies `mode: gate`, the report states which gate thresholds would trigger — but gating is a policy decision with a required override path, not a framework default (FIASSE v1.1 S5.2.3).
