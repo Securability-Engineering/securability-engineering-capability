@@ -1,0 +1,19 @@
+asvs_level: 1
+features:
+  - id: F-01
+    title: Document Management
+    boundaries:
+      - browser-api
+    requirements:
+      - id: F-01-R1
+        text: Ensure documents are protected from unauthorized access.
+        asvs: [V8.2.2]
+        acceptance:
+          - Documents are secure.
+        status: implemented
+      - id: F-01-R2
+        text: Documents can be created and deleted by their owners.
+        asvs: [V8.2.1]
+        acceptance:
+          - Only owners can delete documents.
+        status: planned

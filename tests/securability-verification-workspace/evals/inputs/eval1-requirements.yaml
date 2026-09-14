@@ -1,0 +1,33 @@
+# Securable requirements contract — eval fixture (refuted-claim scenario)
+securable_contract: 1
+asvs_level: 2
+system: Auth service
+generated_by: prd-securability-enhancement@2.2.0
+
+features:
+  - id: F-01
+    title: Password reset via email
+    actor: Unauthenticated user
+    data: [email, credential, reset-token]
+    boundaries: [public-api]
+    requirements:
+      - id: F-01-R1
+        text: The reset endpoint returns the same response whether or not the email matches an account.
+        asvs: [V6.3.8]
+        level: 3
+        escalation: true
+        acceptance:
+          - Non-existent and existing emails produce identical body and status code.
+        status: implemented
+      - id: F-01-R2
+        text: Reset tokens are single-use and expire within 15 minutes.
+        asvs: [V6.4.1]
+        acceptance:
+          - A token cannot be redeemed after first successful use; second attempt returns 400.
+        status: implemented
+      - id: F-01-R3
+        text: All reset events are logged with actor, action, target, and outcome.
+        asvs: [V16.3.1]
+        acceptance:
+          - Log entries for reset request, token issue, and redemption are present and structured.
+        status: implemented

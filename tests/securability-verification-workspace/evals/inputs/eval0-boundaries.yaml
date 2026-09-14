@@ -1,0 +1,11 @@
+# Trust boundary map — eval fixture
+securable_contract: 1
+system: Inventory API
+
+boundaries:
+  - id: warehouse-api
+    kind: http
+    description: Internal HTTPS API consumed by the warehouse SPA.
+    entry_points: ["POST /items", "GET /items", "GET /items/{id}"]
+    data: [item-name, quantity, sku]
+    authority: JWT issued by the identity provider; tenant scoping derived from the token's tenant_id claim.
