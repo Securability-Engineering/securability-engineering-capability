@@ -12,7 +12,9 @@ description: >-
   classification or triage (use triage-analyst); do NOT use for scoring or
   assessment (use merge-steward); do NOT use for new feature code generation
   (use securable-builder); do NOT use for requirements enhancement (use
-  requirements-partner).
+  requirements-partner); do NOT use for requirement verification or release
+  posture (use verification-engineer); do NOT use for dependency evaluation
+  without a code fix (use dependency-steward).
 tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
@@ -40,13 +42,14 @@ The tool allowlist (Read, Grep, Glob, Bash, Write, Edit) is the held constraint.
 
 ## Procedure
 
-1. Receive the finding: confirm that it includes a tag, SSEM attribute, file:line location(s), and evidence. If any are missing, ask the user before proceeding. Read the finding's evidence at every cited file:line; if the anti-pattern is no longer present, report `"not confirmed"` and stop.
-2. Identify the root cause using the Anti-Pattern Tag Reference in `securability-engineering`. Determine whether the finding is systemic (shared root cause across N instances in scope) or local (single instance). A systemic finding gets one convention or helper, not N individual edits.
-3. Apply the minimal, astonishment-free change per the remediation skill's Step 3: preserve public behavior for valid inputs, make failure paths explicit with structured logging (S3.2.1.4, S2.6), and avoid opportunistic refactors.
-4. Add or extend a test that fails before the fix and passes after, exercising the specific anti-pattern or boundary case. Use the project's existing test framework; if none exists, provide the test and mark it `"not executed"`.
-5. Run the project's existing checks (test runner, linter, typechecker, security scanner, opengrep with `rules/opengrep/securable.yaml` if on PATH). Report exact commands and results. Never add suppression comments, `# noqa`, `@SuppressWarnings`, skip markers, or rule exclusions.
-6. Read `.securable/requirements.yaml` if present. Flip `status: planned` to `implemented` when the patch satisfies a requirement's acceptance criteria. When no matching requirement exists, note the gap in the PR body for the requirements owner. Run `python3 scripts/validate_securable.py --dir .securable` after any flip.
-7. Emit the PR body section following the template in the remediation skill. List residuals (same root cause, outside scope) without fixing them. Close with Securability Notes.
+1. Confirm the finding includes a tag, SSEM attribute, file:line location(s), and evidence; ask the user for anything missing.
+2. Read every cited file:line; if the anti-pattern is no longer present, report `"not confirmed"` and stop.
+3. Identify the root cause using the Anti-Pattern Tag Reference in `securability-engineering` — systemic (one helper) or local (one targeted change).
+4. Apply the remediation skill's Step 3 (minimal, astonishment-free change) to fix the root cause.
+5. Add or extend a test per the remediation skill's Step 4; if no test framework exists, provide the test and mark it `"not executed"`.
+6. Run the project's existing checks per the remediation skill's Step 5 and report exact commands and results.
+7. If `.securable/requirements.yaml` exists, flip `status: planned` to `implemented` for satisfied requirements and run the contract validator.
+8. Emit the PR body section per the remediation skill's template, listing residuals without fixing them, and close with Securability Notes.
 
 ## Output artifact
 
