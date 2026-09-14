@@ -47,13 +47,13 @@ Re-read the evidence at every cited file:line. Verify that the anti-pattern desc
 - If the code has **already changed** and the anti-pattern is gone: return `"not confirmed — code at {file}:{line} no longer exhibits the pattern; the finding may have been addressed in a prior change"` and stop.
 - If the evidence does **not match** the finding's description: return `"not confirmed — {reason}"` and stop.
 
-Never fix on a rumor. A finding without reproducible evidence is not actionable (FIASSE v1.1 S6.3 — fix requests must not circumvent the engineers' process).
+Never fix on a rumor. A finding without reproducible evidence is not actionable — acting on it would circumvent the engineers' process (FIASSE v1.1 S6.3).
 
 ### Step 2 — Root cause, not symptom
 
 Identify the anti-pattern shape from the generation skill's Anti-Pattern Tag Reference at `skills/securability-engineering/SKILL.md` and its correct shape. Reference that table by relative path; do not restate it here.
 
-- If the same root cause has **N instances in scope**, fix them together as one patch (systemic fix). A systemic finding gets one convention, helper, or boundary — not N individual edits (FIASSE v1.1 S6.2 — a list of local edits against a systemic cause is Shoveling Left with a patch attached).
+- If the same root cause has **N instances in scope**, fix them together as one patch (systemic fix). A systemic finding gets one convention, helper, or boundary — not N individual edits. Supplying a list of local edits against a systemic cause echoes the Shoveling Left phenomenon (FIASSE v1.1 S6.2) — impractical remediation left to the developer to systematize.
 - If instances exist **outside scope**, list them as **residuals** in the PR body. Do not widen the scope.
 
 ### Step 3 — Minimal, astonishment-free change
@@ -88,7 +88,7 @@ Never add suppression comments, `# noqa`, `@SuppressWarnings`, `skip`, quarantin
 
 Read `.securable/requirements.yaml` if present.
 
-- If the patch satisfies a `planned` requirement's acceptance criteria, flip `status: planned` to `status: implemented`. This is a claim, not evidence — verification belongs to a later review or CI step (FIASSE v1.1 S5.2). **Never set `status: verified`**; that belongs to `securability-engineering-review` or the securability report, and requires `evidence`.
+- If the patch satisfies a `planned` requirement's acceptance criteria, flip `status: planned` to `status: implemented`. This is a claim, not evidence — verification belongs to a later review or CI step (FIASSE v1.1 S5.2). **Never set `status: verified`**; that belongs to `securability-verification` or the securability report, and requires `evidence`.
 - If the finding had **no matching requirement**, note the gap in the PR body for the requirements owner, referencing `prd-securability-enhancement` as the skill that can add it.
 
 ### Step 7 — Produce the review-ready PR body section
@@ -210,7 +210,7 @@ import requests
 
 from app.integrations.weather import get_current_weather
 
-def test_external_call_times_out(self):
+def test_external_call_times_out():
     with patch("app.integrations.weather._make_client") as mock:
         mock.return_value.get.side_effect = requests.Timeout("timed out")
         with pytest.raises(requests.Timeout):
@@ -312,7 +312,7 @@ Before emitting the patch and PR body, confirm:
 
 - FIASSE v1.1 S5.2 — The Role of Merge Reviews (guardrails and knowledge transfer) in `data/fiasse/S5.2.md`
 - FIASSE v1.1 S6.3 — Strategic Use of Security Output (fix requests within the engineers' process) in `data/fiasse/S6.3.md`
-- FIASSE v1.1 S6.2 — The Shoveling Left Phenomenon (local edits against systemic cause) in `data/fiasse/S6.2.md`
+- FIASSE v1.1 S6.2 — The Shoveling Left Phenomenon (impractical remediation left to the developer) in `data/fiasse/S6.2.md`
 - FIASSE v1.1 S4.4 — Resilient Coding in `data/fiasse/S4.4.md`
 - FIASSE v1.1 S4.4.1 — Canonical Input Handling in `data/fiasse/S4.4.1.md`
 - FIASSE v1.1 S4.4.1.1 — The Canonical Parsing Principle in `data/fiasse/S4.4.1.1.md`
