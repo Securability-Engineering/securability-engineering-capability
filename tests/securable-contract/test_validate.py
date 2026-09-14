@@ -19,6 +19,8 @@ EXAMPLES = REPO / "examples" / "securable"
 
 VALID_REQUIREMENTS = (EXAMPLES / "requirements.yaml").read_text(encoding="utf-8")
 VALID_BOUNDARIES = (EXAMPLES / "boundaries.yaml").read_text(encoding="utf-8")
+VALID_POLICY = (EXAMPLES / "policy.yaml").read_text(encoding="utf-8")
+VALID_DEPENDENCIES = (EXAMPLES / "dependencies.yaml").read_text(encoding="utf-8")
 
 # (name, mutate(requirements_text) -> text, expected error substring)
 INVALID_CASES = [
@@ -116,6 +118,136 @@ def main() -> int:
             d = Path(td)
             (d / "requirements.yaml").write_text(mutated, encoding="utf-8")
             (d / "boundaries.yaml").write_text(VALID_BOUNDARIES, encoding="utf-8")
+            proc = run_validator(d)
+            out = proc.stdout + proc.stderr
+            if proc.returncode == 0:
+                failures.append(f"{name}: expected rejection, validator passed")
+            elif expected not in out:
+                failures.append(f"{name}: rejected, but without expected message {expected!r}:\n{out}")
+            else:
+                print(f"ok  {name} rejected as expected")
+
+    # --- Policy: valid example ---
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "policy.yaml").write_text(VALID_POLICY, encoding="utf-8")
+        proc = run_validator(d)
+        if proc.returncode != 0:
+            failures.append(f"valid policy rejected:\n{proc.stdout}{proc.stderr}")
+        else:
+            print("ok  valid-policy accepted")
+
+    # --- Dependencies: valid example ---
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "requirements.yaml").write_text(VALID_REQUIREMENTS, encoding="utf-8")
+        (d / "dependencies.yaml").write_text(VALID_DEPENDENCIES, encoding="utf-8")
+        proc = run_validator(d)
+        if proc.returncode != 0:
+            failures.append(f"valid dependencies rejected:\n{proc.stdout}{proc.stderr}")
+        else:
+            print("ok  valid-dependencies accepted")
+
+    # --- Policy invalid mutations ---
+    POLICY_INVALID = [
+        (
+            "policy-bad-mode",
+            lambda t: t.replace("mode: advisory", "mode: enforce"),
+            "'mode' must be one of",
+        ),
+        (
+            "policy-duplicate-gate-id",
+            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: First gate.\n    when:\n      severity: [HIGH]\n  - id: G-01\n    description: Duplicate.\n    when:\n      severity: [LOW]\n",
+            "duplicate gate id G-01",
+        ),
+        (
+            "policy-bad-gate-id",
+            lambda t: t + "\nmode: gate\ngates:\n  - id: GATE-1\n    description: Bad id.\n    when:\n      severity: [HIGH]\n",
+            "must match G-<n>",
+        ),
+        (
+            "policy-bad-severity",
+            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: Bad sev.\n    when:\n      severity: [EXTREME]\n",
+            "severity 'EXTREME' not in",
+        ),
+        (
+            "policy-bad-attribute",
+            lambda t: t + "\nmode: gate\ngates:\n  - id: G-01\n    description: Bad attr.\n    when:\n      attribute_below:\n        authorization: 3\n",
+            "not in the ten SSEM attributes",
+        ),
+        (
+            "policy-report-dir-dotdot",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: ../outside/reports"),
+            "must not contain '..' segments",
+        ),
+    ]
+
+    for name, mutate, expected in POLICY_INVALID:
+        mutated = mutate(VALID_POLICY)
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "policy.yaml").write_text(mutated, encoding="utf-8")
+            proc = run_validator(d)
+            out = proc.stdout + proc.stderr
+            if proc.returncode == 0:
+                failures.append(f"{name}: expected rejection, validator passed")
+            elif expected not in out:
+                failures.append(f"{name}: rejected, but without expected message {expected!r}:\n{out}")
+            else:
+                print(f"ok  {name} rejected as expected")
+
+    # --- Dependencies invalid mutations ---
+    DEPS_INVALID = [
+        (
+            "deps-bad-ecosystem",
+            lambda t: t.replace("ecosystem: pypi", "ecosystem: pip", 1),
+            "'ecosystem' must be one of",
+        ),
+        (
+            "deps-duplicate-name",
+            lambda t: t.replace("name: structlog", "name: pyjwt"),
+            "duplicate dependency name 'pyjwt'",
+        ),
+        (
+            "deps-audit-clean-no-tool",
+            lambda t: t.replace("tool: pip-audit", "tool: none").replace("result: clean", "result: clean", 1),
+            "requires a tool",
+        ),
+        (
+            "deps-tool-none-not-unverified",
+            lambda t: t.replace("tool: none\n      result: unverified", "tool: none\n      result: clean"),
+            "result must be 'unverified'",
+        ),
+        (
+            "deps-bad-date",
+            lambda t: t.replace('checked: "2026-06-15"', 'checked: "not-a-date"', 1),
+            "must be a YYYY-MM-DD date",
+        ),
+        (
+            "deps-missing-rationale",
+            lambda t: t.replace("rationale: JWT creation and verification for password-reset tokens; stdlib has no JWT support.", "rationale: "),
+            "'rationale' is required and must be non-empty",
+        ),
+        (
+            "deps-bad-scope",
+            lambda t: t.replace("scope: runtime", "scope: production", 1),
+            "'scope' must be one of",
+        ),
+        (
+            "deps-bad-verdict",
+            lambda t: t.replace("verdict: healthy", "verdict: good", 1),
+            "maintenance.verdict must be one of",
+        ),
+    ]
+
+    for name, mutate, expected in DEPS_INVALID:
+        mutated = mutate(VALID_DEPENDENCIES)
+        if mutated == VALID_DEPENDENCIES:
+            failures.append(f"{name}: mutation did not change the fixture (test bug)")
+            continue
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "dependencies.yaml").write_text(mutated, encoding="utf-8")
             proc = run_validator(d)
             out = proc.stdout + proc.stderr
             if proc.returncode == 0:

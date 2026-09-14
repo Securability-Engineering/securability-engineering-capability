@@ -167,6 +167,16 @@ before they become development commitments (FIASSE v1.1 SA.4). Otherwise omit.]
 
 [Same shape as Maintainability above.]
 
+### Escalations
+
+Design-level findings that belong in the threat model rather than in code-level fixes (FIASSE v1.1 S5.2). For each:
+
+```
+- **[Title]** — Boundary: [boundary id or descriptive name]
+  Question: [one-line question for the threat model]
+  Route to: threat-modeling
+```
+
 ### Individual Findings
 
 For each finding, use the format defined in [finding.md](finding.md). Findings name the SSEM pillar and attribute, the FIASSE v1.1 reference, the pattern tag, whether the issue is systemic or local, location, current state, evidence, impact, remediation, expected improvement, verification, and confidence.
@@ -323,3 +333,6 @@ For findings *not* fixed within the iteration cap, list them with severity, attr
 - Sampling discipline is the report's credibility floor. Declare what was inspected; mark the rest `Not assessed` rather than assigning it a number.
 - The overall-score math must be visible: raw mean, floor, and which constraint binds. Pillar means are diagnostics and never feed the overall score.
 - Every expected improvement names its attribute. A bare "+X.X points" is not actionable.
+- Attribute scores in the machine-readable block are **integers** (0–10). Composite math is one decimal. This eliminates false precision that made small run-to-run noise look like real change.
+- The `escalations` count and the Escalations section route design-level findings to the threat model (FIASSE v1.1 S5.2) rather than treating them as code-level fixes.
+- When `.securable/policy.yaml` specifies `mode: gate`, the report states which gate thresholds would trigger but never blocks — gating is a CI/policy decision (FIASSE v1.1 S5.2.3).

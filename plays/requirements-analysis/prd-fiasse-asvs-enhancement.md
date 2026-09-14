@@ -92,6 +92,10 @@ Produce these sections, using the exact templates in the skill:
 - [ ] Trust boundaries and data handling expectations are explicit
 - [ ] Open gaps and assumptions listed
 
+## Additional Modes
+
+The skill also supports **single-story mode** (one user story or ticket as input; compact security-enhanced story as output) and **contract-diff mode** (changed PRD + existing `.securable/requirements.yaml` as input; requirement delta as output). See the "Single-Story Mode" and "Contract-Diff Mode" sections in [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md) for procedure details.
+
 ## References
 
 - [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md) — level rubric, ASVS gap pattern table, output templates, quality checklist

@@ -15,9 +15,13 @@ lifecycle meeting the code at the merge (**S5.2**).
 |---|---|---|
 | `.securable/requirements.yaml` | Per-feature security requirements with ASVS 5.0 references, testable acceptance criteria, and a lifecycle `status` | `schema/securable/requirements.schema.json` |
 | `.securable/boundaries.yaml` | The system's trust-boundary map: entry points, data classes, and the server-side authority behind each boundary (S4.2, S4.3) | `schema/securable/boundaries.schema.json` |
+| `.securable/policy.yaml` | Controls whether merge-time securability reports are advisory (S5.2.2) or gating (S5.2.3), and where the audit trail persists (S5.2.4) | `schema/securable/policy.schema.json` |
+| `.securable/dependencies.yaml` | Dependency stewardship records: rationale, maintenance signals, audit results, and review cadence for third-party dependencies (S4.5, S4.6) | `schema/securable/dependencies.schema.json` |
 
-Worked examples: [`examples/securable/`](../examples/securable/). Both files
-live in the **consuming project**, not in this pack.
+Worked examples: [`examples/securable/`](../examples/securable/). All files
+live in the **consuming project**, not in this pack. Only `requirements.yaml`
+is required; the others are optional and autodetected by the validator when
+present in the same directory.
 
 ## The lifecycle
 
@@ -62,8 +66,43 @@ Beyond shape, the validator enforces the rules a generic schema cannot:
   consuming repo without the catalog, format is still enforced and existence
   checking degrades to a warning.
 
-Tests: `python3 tests/securable-contract/test_validate.py` (the valid example
-plus twelve invalid mutations, each asserted to fail for its specific reason).
+The validator also checks:
+
+- **policy.yaml**: mode enum; gate id pattern and uniqueness; `when` clause keys
+  and values (severity from the enum, attribute names from the ten SSEM
+  attributes, scores 0–10); `report_dir` without `..` segments; warns when
+  gates are present under advisory mode.
+- **dependencies.yaml**: unique names per ecosystem; version format (warns on
+  ranges); `used_by` cross-reference against requirements.yaml; maintenance
+  verdict enum; audit tool/result consistency (clean/findings requires a tool;
+  tool none requires result unverified); YYYY-MM-DD dates.
+
+Tests: `python3 tests/securable-contract/test_validate.py` (the valid examples
+plus invalid mutations across all four file types, each asserted to fail for
+its specific reason).
+
+## Status script
+
+```bash
+python3 scripts/securable_status.py --dir .securable
+python3 scripts/securable_status.py --dir .securable --json
+python3 scripts/securable_status.py --dir .securable --changed-files src/auth.py,src/reset.py
+python3 scripts/securable_status.py --dir .securable --changed-files @changed.txt --fail-on-unverified-touched
+```
+
+Reads the contract directory and prints a markdown status summary: per-feature
+requirement counts (planned/implemented/verified), unverified requirement ids,
+cross-cutting totals, dependencies past their next review or with audit
+unverified, and the policy mode. Use `--json` for machine-readable output.
+
+`--changed-files` reports which boundaries are touched by the listed files and
+which requirements on those boundaries are not verified. A boundary is touched
+when any of its entry_points strings, or its id, appears in the text of a
+changed file, or when the file path contains the boundary id (text-based
+heuristic, not AST analysis).
+
+`--fail-on-unverified-touched` exits 1 when touched boundaries have unverified
+requirements — intended for gate-mode CI pipelines.
 
 ## Why a contract and not a prompt
 
