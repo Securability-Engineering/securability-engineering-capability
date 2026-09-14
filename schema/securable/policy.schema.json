@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://securability.engineering/schema/securable/policy.schema.json",
+  "title": "Securable policy contract (.securable/policy.yaml)",
+  "description": "Repo-resident policy configuration for the securable contract. Controls whether merge-time securability reports are advisory (FIASSE v1.1 S5.2.2) or gating (S5.2.3), and records policy decisions for the audit trail (S5.2.4).",
+  "type": "object",
+  "required": ["securable_contract"],
+  "additionalProperties": false,
+  "properties": {
+    "securable_contract": { "const": 1, "description": "Contract spec version." },
+    "system": { "type": "string", "description": "Human-readable system name." },
+    "mode": {
+      "enum": ["advisory", "gate"],
+      "default": "advisory",
+      "description": "advisory: reports are informational (S5.2.2 default). gate: designated finding classes block the merge (S5.2.3, explicit policy decision)."
+    },
+    "report_dir": {
+      "type": "string",
+      "pattern": "^(?!.*\\.\\.).*$",
+      "description": "Relative path where merge-time reports persist for the audit trail (S5.2.4). Must not contain '..' segments."
+    },
+    "gates": {
+      "type": "array",
+      "description": "Consulted only when mode is gate. Each entry is a declared policy decision (S5.2.3).",
+      "items": { "$ref": "#/$defs/gate" }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_not_assessed_for_score": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 2,
+          "description": "Maximum number of Not assessed attributes before the overall score is suppressed."
+        },
+        "surrounding_context_lines": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 200,
+          "description": "Advisory hint for diff reviews: lines of surrounding context."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gate": {
+      "type": "object",
+      "required": ["id", "description", "when"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^G-[0-9]+$",
+          "description": "Unique gate identifier."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What this gate enforces and why."
+        },
+        "when": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "description": "Conditions that trigger this gate. At least one key required.",
+          "properties": {
+            "severity": {
+              "type": "array",
+              "items": { "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"] },
+              "minItems": 1
+            },
+            "tags": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1
+            },
+            "unverified_requirements_touched": { "type": "boolean" },
+            "attribute_below": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "patternProperties": {
+                "^(analyzability|modifiability|testability|observability|confidentiality|accountability|authenticity|availability|integrity|resilience)$": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                }
+              }
+            },
+            "not_assessed_over": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

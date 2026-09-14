@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Validate the repo-resident securable contract files.
 
-Checks .securable/requirements.yaml and .securable/boundaries.yaml against the
-contract rules (schema/securable/*.schema.json documents the same shape for
-external tools; this validator is dependency-light and adds the semantic rules
-a generic schema cannot express):
+Checks .securable/requirements.yaml, .securable/boundaries.yaml,
+.securable/policy.yaml, and .securable/dependencies.yaml against the contract
+rules (schema/securable/*.schema.json documents the same shape for external
+tools; this validator is dependency-light and adds the semantic rules a generic
+schema cannot express):
 
   - structural shape, required fields, enums, id patterns, duplicate ids
   - requirement ids must belong to their feature (F-03-R2 lives under F-03)
@@ -14,12 +15,18 @@ a generic schema cannot express):
   - ASVS references must resolve against the bundled ASVS 5.0 catalog
     (skipped with a warning when the catalog is not present, e.g. in a
     consuming repo that installed only the contract)
+  - policy: mode enum, gate id pattern and uniqueness, when-clause keys and
+    values, report_dir without '..' segments
+  - dependencies: unique names per ecosystem, version format warnings, used_by
+    cross-reference, maintenance verdict, audit tool/result consistency, dates
 
 Exit 0 = valid; 1 = at least one error. Warnings do not fail the run.
 
 Usage:
   scripts/validate_securable.py [--dir .securable] [--asvs-dir data/asvs] [--quiet]
   scripts/validate_securable.py --requirements PATH [--boundaries PATH]
+  scripts/validate_securable.py --policy PATH
+  scripts/validate_securable.py --dependencies PATH
 """
 
 from __future__ import annotations
@@ -43,9 +50,25 @@ CC_REQ_ID = re.compile(r"^CC-R[0-9]+$")
 BOUNDARY_ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 ASVS_REF = re.compile(r"^V([0-9]{1,2})(?:\.([0-9]{1,2}))?(?:\.([0-9]{1,2}))?$")
 
+GATE_ID = re.compile(r"^G-[0-9]+$")
+DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+VERSION_RANGE_RE = re.compile(r"[\^~*><]|latest")
+
 STATUSES = {"planned", "implemented", "verified"}
 BOUNDARY_KINDS = {"http", "rpc", "queue", "file", "cli", "env", "webhook", "db", "third-party", "other"}
 LEVELS = {1, 2, 3}
+MODES = {"advisory", "gate"}
+SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"}
+SSEM_ATTRIBUTES = {
+    "analyzability", "modifiability", "testability", "observability",
+    "confidentiality", "accountability", "authenticity",
+    "availability", "integrity", "resilience",
+}
+ECOSYSTEMS = {"npm", "pypi", "go", "cargo", "maven", "nuget", "rubygems", "composer", "other"}
+DEP_SCOPES = {"runtime", "dev", "build"}
+MAINTENANCE_VERDICTS = {"healthy", "watch", "replace", "unverified"}
+AUDIT_TOOLS = {"osv-scanner", "pip-audit", "npm audit", "cargo audit", "govulncheck", "none"}
+AUDIT_RESULTS = {"clean", "findings", "unverified"}
 
 
 class Report:
@@ -253,17 +276,221 @@ def validate_boundaries(path: Path, rep: Report) -> set[str] | None:
     return ids
 
 
+def validate_policy(path: Path, rep: Report) -> None:
+    data = load_yaml(path, rep)
+    if data is None:
+        return
+    if data.get("securable_contract") != 1:
+        rep.error(f"{path}: 'securable_contract: 1' is required")
+    for key in data:
+        if key not in {"securable_contract", "system", "mode", "report_dir", "gates", "review"}:
+            rep.error(f"{path}: unknown top-level key '{key}'")
+
+    mode = data.get("mode", "advisory")
+    if mode not in MODES:
+        rep.error(f"{path}: 'mode' must be one of {sorted(MODES)}, got {mode!r}")
+
+    report_dir = data.get("report_dir")
+    if report_dir is not None:
+        if not isinstance(report_dir, str) or not report_dir.strip():
+            rep.error(f"{path}: 'report_dir' must be a non-empty string")
+        elif ".." in report_dir.split("/"):
+            rep.error(f"{path}: 'report_dir' must not contain '..' segments")
+
+    gates = data.get("gates")
+    if gates is not None:
+        if mode == "advisory":
+            rep.warn(f"{path}: gates are present but mode is advisory — gates are only consulted when mode is gate")
+        if not isinstance(gates, list):
+            rep.error(f"{path}: 'gates' must be a list")
+        else:
+            seen_gate_ids: set[str] = set()
+            for i, gate in enumerate(gates):
+                where = f"{path}: gates[{i}]"
+                if not isinstance(gate, dict):
+                    rep.error(f"{where}: must be a mapping")
+                    continue
+                for key in gate:
+                    if key not in {"id", "description", "when"}:
+                        rep.error(f"{where}: unknown key '{key}'")
+                gid = gate.get("id")
+                if not isinstance(gid, str) or not GATE_ID.match(gid):
+                    rep.error(f"{where}: id '{gid}' must match G-<n>")
+                elif gid in seen_gate_ids:
+                    rep.error(f"{where}: duplicate gate id {gid}")
+                else:
+                    seen_gate_ids.add(gid)
+                if not isinstance(gate.get("description"), str) or not gate["description"].strip():
+                    rep.error(f"{where}: 'description' is required and must be non-empty")
+                when = gate.get("when")
+                if not isinstance(when, dict) or not when:
+                    rep.error(f"{where}: 'when' must be a non-empty mapping")
+                else:
+                    allowed_when = {"severity", "tags", "unverified_requirements_touched", "attribute_below", "not_assessed_over"}
+                    for wk in when:
+                        if wk not in allowed_when:
+                            rep.error(f"{where}: 'when' key '{wk}' is not allowed (use {sorted(allowed_when)})")
+                    sev = when.get("severity")
+                    if sev is not None:
+                        if not isinstance(sev, list) or not sev:
+                            rep.error(f"{where}: 'when.severity' must be a non-empty list")
+                        else:
+                            for s in sev:
+                                if s not in SEVERITIES:
+                                    rep.error(f"{where}: severity '{s}' not in {sorted(SEVERITIES)}")
+                    ab = when.get("attribute_below")
+                    if ab is not None:
+                        if not isinstance(ab, dict) or not ab:
+                            rep.error(f"{where}: 'when.attribute_below' must be a non-empty mapping")
+                        else:
+                            for attr, score in ab.items():
+                                if attr not in SSEM_ATTRIBUTES:
+                                    rep.error(f"{where}: attribute '{attr}' not in the ten SSEM attributes")
+                                if not isinstance(score, int) or score < 0 or score > 10:
+                                    rep.error(f"{where}: attribute_below score for '{attr}' must be an integer 0-10")
+                    nao = when.get("not_assessed_over")
+                    if nao is not None:
+                        if not isinstance(nao, int) or nao < 0:
+                            rep.error(f"{where}: 'when.not_assessed_over' must be a non-negative integer")
+
+    review = data.get("review")
+    if review is not None:
+        if not isinstance(review, dict):
+            rep.error(f"{path}: 'review' must be a mapping")
+        else:
+            for key in review:
+                if key not in {"max_not_assessed_for_score", "surrounding_context_lines"}:
+                    rep.error(f"{path}: unknown review key '{key}'")
+
+
+def validate_dependencies(path: Path, requirement_feature_ids: set[str] | None, rep: Report) -> None:
+    data = load_yaml(path, rep)
+    if data is None:
+        return
+    if data.get("securable_contract") != 1:
+        rep.error(f"{path}: 'securable_contract: 1' is required")
+    for key in data:
+        if key not in {"securable_contract", "system", "dependencies"}:
+            rep.error(f"{path}: unknown top-level key '{key}'")
+
+    deps = data.get("dependencies")
+    if not isinstance(deps, list) or not deps:
+        rep.error(f"{path}: 'dependencies' must be a non-empty list")
+        return
+
+    seen_names: set[tuple[str, str]] = set()  # (name, ecosystem)
+    for i, dep in enumerate(deps):
+        where = f"{path}: dependencies[{i}]"
+        if not isinstance(dep, dict):
+            rep.error(f"{where}: must be a mapping")
+            continue
+        for key in dep:
+            if key not in {"name", "ecosystem", "version", "scope", "used_by", "rationale",
+                           "license", "maintenance", "audit", "next_review"}:
+                rep.error(f"{where}: unknown key '{key}'")
+
+        name = dep.get("name")
+        if not isinstance(name, str) or not name.strip():
+            rep.error(f"{where}: 'name' is required and must be non-empty")
+            name = None
+
+        ecosystem = dep.get("ecosystem")
+        if ecosystem not in ECOSYSTEMS:
+            rep.error(f"{where}: 'ecosystem' must be one of {sorted(ECOSYSTEMS)}, got {ecosystem!r}")
+            ecosystem = None
+
+        if name and ecosystem:
+            key_pair = (name, ecosystem)
+            if key_pair in seen_names:
+                rep.error(f"{where}: duplicate dependency name '{name}' in ecosystem '{ecosystem}'")
+            else:
+                seen_names.add(key_pair)
+
+        version = dep.get("version")
+        if not isinstance(version, str) or not version.strip():
+            rep.error(f"{where}: 'version' must be a non-empty string")
+        elif VERSION_RANGE_RE.search(version):
+            rep.warn(f"{where}: version '{version}' looks like a range — pin to an exact version")
+
+        scope = dep.get("scope")
+        if scope not in DEP_SCOPES:
+            rep.error(f"{where}: 'scope' must be one of {sorted(DEP_SCOPES)}, got {scope!r}")
+
+        used_by = dep.get("used_by")
+        if used_by is not None:
+            if not isinstance(used_by, list):
+                rep.error(f"{where}: 'used_by' must be a list")
+            else:
+                for fid in used_by:
+                    if not isinstance(fid, str) or not FEATURE_ID.match(fid):
+                        rep.error(f"{where}: used_by id '{fid}' must match F-<n>")
+                    elif requirement_feature_ids is not None and fid not in requirement_feature_ids:
+                        rep.warn(f"{where}: used_by '{fid}' not found in requirements.yaml")
+
+        if not isinstance(dep.get("rationale"), str) or not dep["rationale"].strip():
+            rep.error(f"{where}: 'rationale' is required and must be non-empty")
+
+        if not isinstance(dep.get("license"), str) or not dep["license"].strip():
+            rep.error(f"{where}: 'license' is required and must be non-empty")
+
+        # maintenance
+        maint = dep.get("maintenance")
+        if not isinstance(maint, dict):
+            rep.error(f"{where}: 'maintenance' is required and must be a mapping")
+        else:
+            for mk in maint:
+                if mk not in {"checked", "signals", "verdict"}:
+                    rep.error(f"{where}: unknown maintenance key '{mk}'")
+            checked = maint.get("checked")
+            if not isinstance(checked, str) or not DATE_RE.match(checked):
+                rep.error(f"{where}: maintenance.checked must be a YYYY-MM-DD date")
+            verdict = maint.get("verdict")
+            if verdict not in MAINTENANCE_VERDICTS:
+                rep.error(f"{where}: maintenance.verdict must be one of {sorted(MAINTENANCE_VERDICTS)}, got {verdict!r}")
+
+        # audit
+        audit = dep.get("audit")
+        if not isinstance(audit, dict):
+            rep.error(f"{where}: 'audit' is required and must be a mapping")
+        else:
+            for ak in audit:
+                if ak not in {"tool", "checked", "result", "notes"}:
+                    rep.error(f"{where}: unknown audit key '{ak}'")
+            tool = audit.get("tool")
+            if tool not in AUDIT_TOOLS:
+                rep.error(f"{where}: audit.tool must be one of {sorted(AUDIT_TOOLS)}, got {tool!r}")
+            result = audit.get("result")
+            if result not in AUDIT_RESULTS:
+                rep.error(f"{where}: audit.result must be one of {sorted(AUDIT_RESULTS)}, got {result!r}")
+            # consistency rules
+            if result in ("clean", "findings") and tool == "none":
+                rep.error(f"{where}: audit.result '{result}' requires a tool (audit.tool must not be 'none')")
+            if tool == "none" and result is not None and result != "unverified":
+                rep.error(f"{where}: when audit.tool is 'none', result must be 'unverified'")
+            a_checked = audit.get("checked")
+            if a_checked is not None and (not isinstance(a_checked, str) or not DATE_RE.match(a_checked)):
+                rep.error(f"{where}: audit.checked must be a YYYY-MM-DD date")
+
+        nr = dep.get("next_review")
+        if nr is not None and (not isinstance(nr, str) or not DATE_RE.match(nr)):
+            rep.error(f"{where}: next_review must be a YYYY-MM-DD date")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dir", default=".securable", help="directory holding the contract files (default .securable)")
     ap.add_argument("--requirements", help="explicit path to requirements.yaml")
     ap.add_argument("--boundaries", help="explicit path to boundaries.yaml")
+    ap.add_argument("--policy", help="explicit path to policy.yaml")
+    ap.add_argument("--dependencies", help="explicit path to dependencies.yaml")
     ap.add_argument("--asvs-dir", help="ASVS catalog directory (default: data/asvs next to this script's repo)")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
     req_path = Path(args.requirements) if args.requirements else Path(args.dir) / "requirements.yaml"
     bnd_path = Path(args.boundaries) if args.boundaries else Path(args.dir) / "boundaries.yaml"
+    pol_path = Path(args.policy) if args.policy else Path(args.dir) / "policy.yaml"
+    dep_path = Path(args.dependencies) if args.dependencies else Path(args.dir) / "dependencies.yaml"
 
     asvs_dir = Path(args.asvs_dir) if args.asvs_dir else REPO / "data" / "asvs"
     rep = Report()
@@ -271,8 +498,9 @@ def main() -> int:
         rep.warn(f"ASVS catalog not found at {asvs_dir} — reference format checked, existence not verified")
         asvs_dir = None
 
-    if not req_path.is_file() and not bnd_path.is_file():
-        print(f"error: neither {req_path} nor {bnd_path} exists", file=sys.stderr)
+    have_any = any(p.is_file() for p in (req_path, bnd_path, pol_path, dep_path))
+    if not have_any:
+        print(f"error: no contract files found in {args.dir}", file=sys.stderr)
         return 1
 
     boundary_ids: set[str] | None = None
@@ -280,6 +508,22 @@ def main() -> int:
         boundary_ids = validate_boundaries(bnd_path, rep)
     if req_path.is_file():
         validate_requirements(req_path, boundary_ids, asvs_dir, rep)
+
+    if pol_path.is_file():
+        validate_policy(pol_path, rep)
+
+    # Collect feature ids from requirements for used_by cross-reference
+    requirement_feature_ids: set[str] | None = None
+    if req_path.is_file() and dep_path.is_file():
+        req_data = load_yaml(req_path, Report())
+        if req_data and isinstance(req_data.get("features"), list):
+            requirement_feature_ids = set()
+            for feat in req_data["features"]:
+                if isinstance(feat, dict) and isinstance(feat.get("id"), str):
+                    requirement_feature_ids.add(feat["id"])
+
+    if dep_path.is_file():
+        validate_dependencies(dep_path, requirement_feature_ids, rep)
 
     if not args.quiet:
         for w in rep.warnings:
@@ -290,7 +534,7 @@ def main() -> int:
             print(f"  {e}")
         return 1
     if not args.quiet:
-        checked = [str(p) for p in (req_path, bnd_path) if p.is_file()]
+        checked = [str(p) for p in (req_path, bnd_path, pol_path, dep_path) if p.is_file()]
         print(f"OK — securable contract valid: {', '.join(checked)}")
     return 0
 

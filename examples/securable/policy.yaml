@@ -1,0 +1,25 @@
+# Securable policy — example (FIASSE v1.1 S5.2.2, S5.2.3, S5.2.4)
+# Controls whether merge-time securability reports are advisory or gating,
+# and where the audit trail persists. Validate with scripts/validate_securable.py.
+securable_contract: 1
+system: Customer portal
+mode: advisory
+report_dir: .securable/reports
+
+# Gates are consulted only when mode is gate. Uncomment and switch mode to
+# gate to enable blocking merges on designated finding classes (S5.2.3).
+# gates:
+#   - id: G-01
+#     description: Block merges with any CRITICAL or HIGH finding.
+#     when:
+#       severity: [CRITICAL, HIGH]
+#   - id: G-02
+#     description: Block when any attribute scores below 3.
+#     when:
+#       attribute_below:
+#         integrity: 3
+#         authenticity: 3
+
+review:
+  max_not_assessed_for_score: 2
+  surrounding_context_lines: 200

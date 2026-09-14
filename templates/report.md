@@ -26,6 +26,38 @@ Scoring conduct is governed by FIASSE v1.1 SA.4: the score is a directional mana
 
 ## Part 1 — SSEM Score Summary
 
+### Machine-Readable Score Block
+
+```yaml
+ssem_score:
+  version: 1
+  date: YYYY-MM-DD
+  scope: <string>
+  commit: <sha or n/a>
+  attributes:            # integer 0-10, or not_assessed, or n_a
+    analyzability: [N]
+    modifiability: [N]
+    testability: [N]
+    observability: [N]
+    confidentiality: [N]
+    accountability: [N]
+    authenticity: [N]
+    availability: [N]
+    integrity: [N]
+    resilience: [N]
+  raw_mean: [X.X]
+  floor: [X.X]
+  overall: [X.X]
+  binding: [raw_mean | floor | none]
+  grade: [Exemplary | Strong | Adequate | Weak | Minimal | Absent]
+  weakest: [attribute name]
+  severity_counts: {critical: [N], high: [N], medium: [N], low: [N], info: [N]}
+  requirements: {verified: [N], implemented: [N], planned: [N], refuted: [N]}
+  escalations: [N]
+```
+
+Attribute scores are **integers** (0–10, `not_assessed`, or `n_a`). Composite math (raw_mean, floor, overall) is one decimal. When more than 2 attributes are `not_assessed`, set `binding: none` and omit raw_mean, floor, overall, grade, and weakest. The `requirements` field reflects `.securable/requirements.yaml` status counts when the contract exists; omit it otherwise. `escalations` counts the design-level findings routed to the threat model.
+
 ### Overall
 
 - **Raw mean** (all assessed attributes): [X.X]

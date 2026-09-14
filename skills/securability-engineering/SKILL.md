@@ -112,18 +112,19 @@ Don't enumerate all of these in code — pick the ones that *matter for this bou
 
 ## Steps (Default Mode)
 
-0. **Honor the contract, if present** — If the project contains `.securable/requirements.yaml`, it is the authoritative requirements source for the features it covers: read the matching feature's requirements and acceptance criteria before generating, and design to satisfy them. Read `.securable/boundaries.yaml` (when present) as the trust-boundary map instead of rediscovering boundaries. After generating, flip each satisfied requirement's `status: planned → implemented` in the contract file and list the flipped IDs in the Securability Notes. Never set `verified` — that flip belongs to review or CI, backed by evidence. If the generated code cannot satisfy a covered requirement, say so explicitly in the trade-offs; do not silently drop it.
+0. **Honor the contract, if present** — If the project contains `.securable/requirements.yaml`, it is the authoritative requirements source for the features it covers: read the matching feature's requirements and acceptance criteria before generating, and design to satisfy them. Read `.securable/boundaries.yaml` (when present) as the trust-boundary map instead of rediscovering boundaries. After generating, flip each satisfied requirement's `status: planned → implemented` in the contract file and list the flipped IDs in the Securability Notes. Generated code may flip `planned → implemented` only — never `implemented → verified` and never any other transition. The `verified` flip belongs to review or CI, backed by evidence. If the generated code cannot satisfy a covered requirement, say so explicitly in the trade-offs; do not silently drop it.
 1. **Identify Context** — Language, framework, system type, data sensitivity, exposure level, trust boundaries, feature category.
 2. **Map Feature Requirements to ASVS** — Use `data/asvs/README.md` and the relevant `data/asvs/V*.md` chapters to identify the security requirements applying to the feature being generated.
 3. **Apply SSEM Constraints** — Enforce the attribute rules in the tables above. Consult `data/fiasse/S3.2.1.md`–`S3.2.3.md` for umbrella definitions.
 4. **Handle Trust Boundaries** — Identify where generated code crosses trust boundaries. Apply FIASSE v1.1 S4.3 (Boundary Control) and S4.4 (Resilient Coding).
 5. **Select Dependencies Deliberately** (FIASSE v1.1 S4.5, S4.6):
    - Latest stable versions unless a compatibility constraint is known
-   - Low known CVE/CWE exposure
+   - Low known CVE/CWE exposure — when a dependency audit tool is present, run it and cite the result; when absent, state that CVE exposure is unverified rather than asserting it is low
    - Mature, actively maintained projects
    - Minimize footprint; avoid libraries when standard library suffices
    - Pin versions; include lockfile guidance
    - Treat the dependency as an ongoing relationship (Stewardship)
+   - When adding or updating a dependency, run the `dependency-stewardship` skill to evaluate maintenance signals, trustworthiness, and update cadence, and record the result in `.securable/dependencies.yaml`
 6. **Instrument Transparency & Observability** — Add structured logging at security-sensitive points (FIASSE v1.1 S2.6). Include audit-trail hooks for auth/authz events. Build observability into the code itself (FIASSE v1.1 S3.2.1.4).
 7. **Generate Code** — Produce the code with all SSEM constraints applied. Code should be:
    - Small, single-purpose functions with clear names (Analyzability)
@@ -131,7 +132,8 @@ Don't enumerate all of these in code — pick the ones that *matter for this bou
    - Defensive at trust boundaries, flexible inside (Integrity, Resilience)
    - Observable via structured logging and audit trails (Observability, Accountability)
 8. **Self-Check** — Verify against the Generation Checklist below before returning.
-9. **Verify with real tools when available** — a checklist pass is a claim; a tool run is evidence. If the project already has a formatter, linter, typechecker, or test runner, run it on the generated code and fix what it finds before returning. If a security scanner is present (opengrep, bandit, gosec, eslint security rules, `npm audit` / `pip-audit` / `osv-scanner` for the dependency step), run that too and treat its findings as review input. When no tooling exists, say so in the Securability Notes trade-offs instead of implying verification happened — and do not install new tools uninvited.
+9. **Scaffold acceptance-criterion tests** — For each acceptance criterion in `.securable/requirements.yaml` that the change claims to satisfy, scaffold a test named after the criterion id (e.g., `test_F03_R2_reset_token_single_use`). The test encodes the criterion's pass/fail condition. Hand execution-based verification to the `securability-verification` skill — do not assert pass here; the scaffold is the deliverable.
+10. **Verify with real tools when available** — a checklist pass is a claim; a tool run is evidence. If the project already has a formatter, linter, typechecker, or test runner, run it on the generated code and fix what it finds before returning. If a security scanner is present (opengrep, bandit, gosec, eslint security rules, `npm audit` / `pip-audit` / `osv-scanner` for the dependency step), run that too and treat its findings as review input. When no tooling exists, say so in the Securability Notes trade-offs instead of implying verification happened — and do not install new tools uninvited.
 
 ## Output Format
 
@@ -261,8 +263,8 @@ If you catch yourself emitting one of these, stop and rewrite.
 **Dependency hygiene**:
 - [ ] External libraries are necessary (no avoidable dependency added)
 - [ ] Selected versions are latest stable compatible releases
-- [ ] Selected packages have low known CVE/CWE exposure
-- [ ] Active-maintenance signals checked
+- [ ] Selected packages have low known CVE/CWE exposure (tool-run or explicitly marked unverified)
+- [ ] Active-maintenance signals checked (via `dependency-stewardship` when adding/updating)
 - [ ] Versions pinned; lockfile guidance included
 
 **Transparency**:

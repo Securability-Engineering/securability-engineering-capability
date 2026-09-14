@@ -187,6 +187,40 @@ The full step-by-step runbook lives in [plays/code-analysis/securability-enginee
 
 The report must contain exactly these three parts in order. Do not skip parts even on small reviews.
 
+### Machine-Readable Score Block
+
+Every report must include a YAML-fenced score block immediately after the Part 1 heading. This block is the mechanical baseline that makes delta-over-time diffable without parsing prose. Attribute scores are **integers** (0–10, or `not_assessed`, or `n_a`) — the rubric's one-decimal interpolation introduced false precision that manufactured the appearance of change where none existed (F7). The composite math (raw_mean, floor, overall) is still reported to one decimal because the mean of integers is legitimately fractional.
+
+```yaml
+ssem_score:
+  version: 1
+  date: YYYY-MM-DD
+  scope: <string>
+  commit: <sha or n/a>
+  attributes:            # integer 0-10, or not_assessed, or n_a
+    analyzability: 7
+    modifiability: 6
+    testability: 5
+    observability: 4
+    confidentiality: 7
+    accountability: 5
+    authenticity: 8
+    availability: 6
+    integrity: 3
+    resilience: 5
+  raw_mean: 5.6
+  floor: 6.0
+  overall: 5.6
+  binding: raw_mean       # raw_mean | floor | none (when >2 not assessed)
+  grade: Adequate
+  weakest: integrity
+  severity_counts: {critical: 0, high: 2, medium: 3, low: 1, info: 0}
+  requirements: {verified: 0, implemented: 2, planned: 5, refuted: 1}
+  escalations: 1
+```
+
+When more than 2 attributes are `not_assessed`, set `binding: none` and omit `raw_mean`, `floor`, `overall`, `grade`, and `weakest` — the block still records the per-attribute detail and severity counts.
+
 ### Part 1: SSEM Score Summary
 
 A compact summary block. The exact ASCII shape can flex (Markdown tables are also acceptable when the review is short), but it must include:
@@ -218,6 +252,18 @@ Per pillar, write:
   ```
 
 Expected Improvement is **always expressed in attribute points against a named attribute**. Where a fix lifts several attributes, list each: `+5.0 on Integrity, +3.0 on Accountability`. Never emit a bare "+X.X points" — the reader cannot act on an unattributed delta.
+
+#### Escalations
+
+Design-level findings that belong in the threat model rather than in code-level fixes (FIASSE v1.1 S5.2 — "Findings that reveal design-level concerns should be escalated into the formal threat model rather than addressed solely as code-level fixes"). For each escalation, emit:
+
+```
+- **[Title]** — Boundary: [boundary id from .securable/boundaries.yaml, or a descriptive name]
+  Question: [one-line question for the threat model — e.g., "What is the intended trust level of the webhook source?"]
+  Route to: threat-modeling
+```
+
+Count the escalations in the machine-readable score block's `escalations` field.
 
 For per-finding format, use [templates/finding.md](../../templates/finding.md).
 For full-report scaffold, use [templates/report.md](../../templates/report.md).
@@ -307,6 +353,8 @@ When you find one of these patterns, tag the finding with the FIASSE/SSEM princi
 
 You don't need this whole table inline in every report. But when one of these patterns is *present*, the finding should name the principle by tag — not just describe the symptom.
 
+The `securability-triage`, `securability-remediation`, and `securability-postmortem` skills reuse these exact tag strings so that findings are traceable across the triage → review → remediation → postmortem lifecycle without tag translation.
+
 ## Anti-Patterns (Things That Make a Report Useless)
 
 - **Assurance drift**: presenting the score as a verdict on whether the system is secure or compliant. SA.4 forbids it, and FIASSE is explicitly not an assurance framework. Report posture and direction.
@@ -336,6 +384,17 @@ Always:
 - If evidence is insufficient, use `Not assessed` and **state the limitation in the assessment line for that attribute**.
 - **Flag for human review when material** (SA.4): where the system is high-impact, or the overall score dropped materially against the prior baseline, say plainly that a reviewer should confirm the recommendations before they become development commitments.
 
+## Policy Awareness
+
+If the project contains `.securable/policy.yaml`, read it before scoring. Two fields are relevant:
+
+- **`mode`** — `advisory` (default) or `gate`. The report is always informational. When mode is `gate`, the report additionally states which declared gate thresholds would trigger (e.g., "overall < 5.0", "any CRITICAL finding") — but the skill never blocks a merge or exits non-zero. Gating is a CI/policy decision, not a reviewer decision (FIASSE v1.1 S5.2.3).
+- **`report_dir`** — when the user asks to persist the report, write it to `<report_dir>/<YYYY-MM-DD>-<scope>.md`. Do not persist unless asked.
+
+## Scanner Output Routing
+
+When scanner output (SAST, dependency audit, linter findings) is supplied as input, do not re-triage inline. Route it through the `securability-triage` skill, which normalizes scanner findings into SSEM-tagged, deduplicated, prioritized input. Consume the triaged output as evidence for attribute scoring, citing the scanner and the triage as the source.
+
 ## Invocation Behavior
 
 When invoked:
@@ -343,7 +402,7 @@ When invoked:
 1. Ask for missing project information if context is incomplete, including any prior scorecard to diff against.
 2. Apply the triage strategy if the codebase is large; otherwise inspect comprehensively.
 3. Score against the rubric using the procedure above.
-4. Produce the three-part report exactly as specified, led by the SA.4 framing line.
+4. Produce the three-part report exactly as specified, led by the SA.4 framing line and the machine-readable score block.
 5. Use repository evidence over assumptions; declare gaps with `Not assessed` rather than filling them in.
 
 ## FIASSE & OWASP References

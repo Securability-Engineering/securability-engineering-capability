@@ -1,6 +1,6 @@
 ---
 name: prd-securability-enhancement
-description: Enhance PRDs, feature specs, user stories, or product briefs with explicit OWASP ASVS coverage and FIASSE v1.1 SSEM implementation guidance — before code is written. Trigger on "harden the PRD/spec", "choose ASVS level", "map features to ASVS", "find missing security requirements", "add NFRs for security", "make these requirements securable", "security-review my product brief". For code review use securability-engineering-review; for code generation use securability-engineering.
+description: Enhance PRDs, feature specs, user stories, tickets, or product briefs with explicit OWASP ASVS coverage and FIASSE v1.1 SSEM implementation guidance — before code is written. Trigger on "harden the PRD/spec", "choose ASVS level", "map features to ASVS", "find missing security requirements", "add NFRs for security", "make these requirements securable", "security-review my product brief", "add security criteria to this story/ticket", "what changed in the requirements". Supports single-story mode (one user story or ticket in, security-enhanced story out) and contract-diff mode (changed PRD + existing contract in, requirement delta out). For code review use securability-engineering-review; for code generation use securability-engineering.
 license: CC-BY-4.0
 ---
 
@@ -23,7 +23,12 @@ Trigger this skill when the user asks to:
 - Annotate features with SSEM attributes or FIASSE tenets
 - Add testable security acceptance criteria to existing functional requirements
 
-Adjacent phrasings: "security-review this spec", "what's missing security-wise from this feature list", "add NFRs for security to my PRD", "make these requirements securable".
+Adjacent phrasings: "security-review this spec", "what's missing security-wise from this feature list", "add NFRs for security to my PRD", "make these requirements securable", "add security criteria to this ticket", "what security requirements changed".
+
+Two additional modes extend the core workflow:
+
+- **Single-story mode** — input is one user story or ticket rather than a full PRD. See "Single-Story Mode" below.
+- **Contract-diff mode** — input is a changed PRD plus an existing `.securable/requirements.yaml`. See "Contract-Diff Mode" below.
 
 ## Inputs
 
@@ -271,6 +276,33 @@ This trips the "Reset flow gaps" pattern in the gap table — so the missing req
 ```
 
 This is the level of specificity the output should hit — concrete, testable, and traceable back to ASVS.
+
+## Single-Story Mode
+
+When the input is a single user story, ticket, or feature description — not a full PRD — run a focused variant of the procedure:
+
+1. **Parse the story** — extract actor, data touched, trust boundaries crossed, and existing acceptance criteria (Step 1, single feature).
+2. **Inherit the ASVS level** — use the level from `.securable/requirements.yaml` if it exists, or ask.
+3. **Map to ASVS and apply gap patterns** — same as Steps 3–4, scoped to this one feature.
+4. **Add Security Features and Acceptance Criteria** — per FIASSE v1.1 S4.1.2, the output includes Security Features (specific security capabilities the story requires), Threat Scenarios (referencing the `threat-modeling` skill as the source — do not inline a full threat model here), and testable Security Acceptance Criteria. This is the first leading indicator of adoption: security acceptance criteria appearing on stories as a matter of course (FIASSE v1.1 S8.2.1).
+5. **Emit the enhanced story** — the original story text, augmented with the sections above and a short Securability Notes paragraph.
+6. **Emit the contract requirement block** — one or more requirement entries in `.securable/requirements.yaml` shape (feature id, requirement ids, ASVS references, acceptance criteria, `status: planned`). If the contract file already exists, append; otherwise emit the block for the user to place.
+
+The output is deliberately compact — a story that fits in a ticket, not a multi-page PRD artifact.
+
+## Contract-Diff Mode
+
+When the input is a changed PRD (or a set of changed stories) **plus** an existing `.securable/requirements.yaml`, produce a delta rather than a full enhancement:
+
+1. **Read the existing contract** — load `.securable/requirements.yaml` and `.securable/boundaries.yaml` (when present).
+2. **Parse the changed PRD** — identify new, changed, and removed features relative to the contract's feature list.
+3. **For each new feature** — run the standard enhancement procedure (Steps 1–7) and emit new requirement entries with `status: planned`.
+4. **For each changed feature** — re-map to ASVS, re-apply gap patterns, and emit updated requirement entries. Preserve `status` for requirements whose acceptance criteria are unchanged; reset to `planned` for requirements whose criteria changed materially.
+5. **For each removed feature** — list the requirement ids that no longer have a parent feature. Do not delete them silently; flag them for the team to confirm removal.
+6. **For unchanged features** — carry forward without modification; do not re-emit.
+7. **Emit the delta** — a structured diff: new requirements, changed requirements (with what changed), removed requirements (flagged for confirmation), and a summary count. Where boundaries changed, note additions or removals for `.securable/boundaries.yaml` and reference the `threat-modeling` skill for boundary-map updates.
+
+Run `scripts/validate_securable.py --dir .securable` after applying the delta.
 
 ## Quality Checklist (run before emitting)
 

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://securability.engineering/schema/securable/dependencies.schema.json",
+  "title": "Securable dependencies contract (.securable/dependencies.yaml)",
+  "description": "Repo-resident dependency stewardship record. Tracks rationale, maintenance signals, audit results, and review cadence for every third-party dependency. FIASSE v1.1 S4.5 (Dependency Management) and S4.6 (Dependency Stewardship).",
+  "type": "object",
+  "required": ["securable_contract", "dependencies"],
+  "additionalProperties": false,
+  "properties": {
+    "securable_contract": { "const": 1, "description": "Contract spec version." },
+    "system": { "type": "string", "description": "Human-readable system name." },
+    "dependencies": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/dependency" }
+    }
+  },
+  "$defs": {
+    "dependency": {
+      "type": "object",
+      "required": ["name", "ecosystem", "version", "scope", "rationale", "license", "maintenance", "audit"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "description": "Package name." },
+        "ecosystem": {
+          "enum": ["npm", "pypi", "go", "cargo", "maven", "nuget", "rubygems", "composer", "other"],
+          "description": "Package ecosystem."
+        },
+        "version": { "type": "string", "minLength": 1, "description": "Pinned version string." },
+        "scope": {
+          "enum": ["runtime", "dev", "build"],
+          "description": "Where this dependency is used."
+        },
+        "used_by": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^F-[0-9]+$" },
+          "description": "Feature ids from requirements.yaml that use this dependency."
+        },
+        "rationale": { "type": "string", "minLength": 1, "description": "Why this dependency and not stdlib or an existing one." },
+        "license": { "type": "string", "minLength": 1, "description": "SPDX identifier or 'unknown'." },
+        "maintenance": {
+          "type": "object",
+          "required": ["checked", "verdict"],
+          "additionalProperties": false,
+          "properties": {
+            "checked": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "Date of last maintenance check (YYYY-MM-DD)." },
+            "signals": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Observed facts about maintenance health."
+            },
+            "verdict": {
+              "enum": ["healthy", "watch", "replace", "unverified"],
+              "description": "Maintenance verdict derived from signals."
+            }
+          }
+        },
+        "audit": {
+          "type": "object",
+          "required": ["tool", "result"],
+          "additionalProperties": false,
+          "properties": {
+            "tool": {
+              "enum": ["osv-scanner", "pip-audit", "npm audit", "cargo audit", "govulncheck", "none"],
+              "description": "Audit tool used, or none if unavailable."
+            },
+            "checked": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "Date of audit run (YYYY-MM-DD)." },
+            "result": {
+              "enum": ["clean", "findings", "unverified"],
+              "description": "Audit outcome."
+            },
+            "notes": { "type": "string", "description": "Finding ids or why unverified." }
+          }
+        },
+        "next_review": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Next scheduled stewardship review date (YYYY-MM-DD)."
+        }
+      }
+    }
+  }
+}
