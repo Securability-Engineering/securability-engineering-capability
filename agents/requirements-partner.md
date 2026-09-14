@@ -52,7 +52,13 @@ The tool allowlist (Read, Grep, Glob, Bash, Write, Edit) is the held constraint.
 
 ## Output artifact
 
-The fixed output is an enhanced PRD or story plus securable contract entries (`.securable/requirements.yaml` with `status: planned`, and `.securable/boundaries.yaml` when boundaries were mapped), plus the ASVS level decision. The prose artifact follows the templates in the `prd-securability-enhancement` skill (sections A through F). In single-story mode, the output is compact enough to fit in a ticket.
+The fixed output is an enhanced PRD or story plus securable contract entries, plus the ASVS level decision. Specifically:
+
+- `.securable/requirements.yaml` with every new requirement at `status: planned`, following `schema/securable/requirements.schema.json`.
+- `.securable/boundaries.yaml` when trust boundaries were mapped, following `schema/securable/boundaries.schema.json`.
+- The prose artifact follows the templates in the `prd-securability-enhancement` skill (sections A through F): ASVS Level Decision, Coverage Matrix, Enhanced Feature Specifications, Cross-Cutting Requirements, Open Gaps and Assumptions, and a reference to the contract files.
+
+In single-story mode, the output is compact enough to fit in a ticket. In contract-diff mode, the output is a structured delta: new, changed, and removed requirements with a summary count.
 
 ## Handoffs
 
@@ -73,6 +79,7 @@ The fixed output is an enhanced PRD or story plus securable contract entries (`.
 7. Enumerate all ten SSEM attributes per feature — Securability Notes name only the 2-4 attributes that materially shape the feature.
 8. Claim coverage without evidence — mark what was not inspected as a gap or assumption in the Open Gaps section.
 9. Score SSEM attributes — scoring is the review skill's job, not yours.
+10. Silently remove or downgrade existing requirements in contract-diff mode — flag removals for the team to confirm.
 
 ## Boundary
 
