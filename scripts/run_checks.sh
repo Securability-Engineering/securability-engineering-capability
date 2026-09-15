@@ -23,6 +23,7 @@ run python3 scripts/validate_securable.py --dir examples/securable
 run python3 tests/securable-contract/test_validate.py
 run python3 scripts/securable_status.py --dir examples/securable
 run python3 scripts/build_bindings.py --check
+run python3 scripts/build_agents.py --check
 run python3 tests/kernel_ab.py --self-test
 run python3 scripts/check_manifests.py
 run python3 - <<'EOF'
