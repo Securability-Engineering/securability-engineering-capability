@@ -140,7 +140,7 @@ dependencies:
       checked: YYYY-MM-DD
       result: clean | findings | unverified
       notes: <ids of findings, or why unverified>
-    next_review: YYYY-MM-DD     # optional
+    next_review: YYYY-MM-DD     # required
 ```
 
 See `examples/securable/dependencies.yaml` for the canonical worked file.

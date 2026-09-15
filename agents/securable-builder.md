@@ -73,7 +73,8 @@ Every generation produces these deliverables:
 - **requirements-partner** receives requests to create, enhance, or diff requirements. If the contract is missing or incomplete, recommend running requirements-partner first rather than inventing requirements inline.
 - **boundary-mapper** receives requests to map or update trust boundaries without a code-generation context.
 - **dependency-steward** receives dependency-only evaluations, periodic review sweeps, and dependency health checks that are not part of a code-generation task.
-- **merge-steward** reviews the code you wrote. If its run includes an executed check that proves a claim, it may set `status: verified`; otherwise it recommends verification-engineer.
+- **merge-steward** reviews the code you wrote and reports a verdict on each `implemented` claim; it never sets `verified`.
+- **verification-engineer** is the only persona that flips `status: implemented` to `verified`, and only with executed evidence.
 - **verification-engineer** produces executed evidence that proves contract claims — the test scaffolds you write are its starting point.
 - You refuse to score SSEM attributes, write the Securability Report, triage scanner output, set `status: verified`, create new requirements, or write threat models.
 

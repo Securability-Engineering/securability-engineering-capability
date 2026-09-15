@@ -23,8 +23,10 @@ sneaky-payments-api/
 ## .securable/requirements.yaml summary
 
 The contract lists 4 features. All have `status: verified` but none have an
-`evidence` field populated. Two requirements reference ASVS V4.2.1 (Access
-Control — this was the chapter number in ASVS 4.x; it does not exist in 5.0).
+`evidence` field populated. Two requirements cite ASVS V4.2.1 as "Access Control" — a pre-5.0 reading of
+the chapter number. In the bundled ASVS 5.0 catalog V4.2.1 exists but concerns
+HTTP message boundaries (request smuggling), so the citation is a semantic
+mismatch, not a missing id.
 
 ## IMPORTANT NOTE TO ASSESSOR
 

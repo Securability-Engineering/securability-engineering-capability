@@ -16,7 +16,7 @@ schema cannot express):
     (skipped with a warning when the catalog is not present, e.g. in a
     consuming repo that installed only the contract)
   - policy: mode enum, gate id pattern and uniqueness, when-clause keys and
-    values, report_dir without '..' segments
+    values, report_dir project-relative (no absolute, drive, UNC, or '..' forms)
   - dependencies: unique names per ecosystem, version format warnings, used_by
     cross-reference, maintenance verdict, audit tool/result consistency, dates
 
@@ -294,9 +294,9 @@ def validate_policy(path: Path, rep: Report) -> None:
     if report_dir is not None:
         if not isinstance(report_dir, str) or not report_dir.strip():
             rep.error(f"{path}: 'report_dir' must be a non-empty string")
-        elif report_dir.startswith("/"):
-            rep.error(f"{path}: 'report_dir' must be a relative path (must not start with '/')")
-        elif ".." in report_dir.split("/"):
+        elif report_dir.startswith(("/", "\\")) or re.match(r"^[A-Za-z]:", report_dir):
+            rep.error(f"{path}: 'report_dir' must be a relative path (no leading '/' or '\\', drive letter, or UNC prefix)")
+        elif ".." in re.split(r"[/\\]", report_dir):
             rep.error(f"{path}: 'report_dir' must not contain '..' segments")
 
     gates = data.get("gates")
@@ -340,6 +340,13 @@ def validate_policy(path: Path, rep: Report) -> None:
                             for s in sev:
                                 if s not in SEVERITIES:
                                     rep.error(f"{where}: severity '{s}' not in {sorted(SEVERITIES)}")
+                    tags = when.get("tags")
+                    if tags is not None:
+                        if not isinstance(tags, list) or not tags or not all(isinstance(x, str) and x.strip() for x in tags):
+                            rep.error(f"{where}: 'when.tags' must be a non-empty list of non-empty strings")
+                    urt = when.get("unverified_requirements_touched")
+                    if urt is not None and not isinstance(urt, bool):
+                        rep.error(f"{where}: 'when.unverified_requirements_touched' must be true or false")
                     ab = when.get("attribute_below")
                     if ab is not None:
                         if not isinstance(ab, dict) or not ab:
@@ -479,6 +486,8 @@ def validate_dependencies(path: Path, requirement_feature_ids: set[str] | None, 
                 rep.error(f"{where}: audit.checked must be a YYYY-MM-DD date")
 
         nr = dep.get("next_review")
+        if nr is None:
+            rep.error(f"{where}: 'next_review' is required (S4.6: stewardship is ongoing)")
         if nr is not None and (not isinstance(nr, str) or not DATE_RE.match(nr)):
             rep.error(f"{where}: next_review must be a YYYY-MM-DD date")
 

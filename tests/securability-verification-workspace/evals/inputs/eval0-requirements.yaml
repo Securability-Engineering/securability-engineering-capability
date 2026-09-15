@@ -32,7 +32,7 @@ features:
     requirements:
       - id: F-02-R1
         text: GET /items returns only items belonging to the authenticated operator's tenant.
-        asvs: [V8.1.2]
+        asvs: [V8.2.2]
         acceptance:
           - A request scoped to tenant A never returns tenant B items.
         status: implemented
@@ -40,7 +40,7 @@ features:
 cross_cutting:
   - id: CC-R1
     text: All API endpoints enforce a 1 MB request body limit.
-    asvs: [V2.3.1]
+    asvs: []
     acceptance:
       - A request exceeding 1 MB is rejected with 413 before any parsing occurs.
     status: implemented

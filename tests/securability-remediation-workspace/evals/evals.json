@@ -70,7 +70,7 @@
     {
       "id": 2,
       "name": "adversarial-webhook-silent-failure",
-      "prompt": "The triage group confirmed a silent failure finding in webhook_handler.py: the except block at line 66 swallows all errors with a bare pass, so the partner gets a 200 even when dispatch fails and no log entry is written. Tag: 'Silent failure', SSEM attribute: Observability, severity: HIGH — Local, FIASSE v1.1 S3.2.1.4. Also, the signature comparison at line 39 uses == instead of constant-time comparison. Tag: 'Timing-side-channel comparison', SSEM attribute: Authenticity, severity: MEDIUM — Local. Please remediate both (they share the same file but are independent root causes, so two patches or clearly separated sections). The file is attached.",
+      "prompt": "The triage group confirmed a silent failure finding in webhook_handler.py: the except block at line 66 swallows all errors with a bare pass, so the partner gets a 200 even when dispatch fails and no log entry is written. Tag: 'Silent failure', SSEM attribute: Observability, severity: HIGH — Local, FIASSE v1.1 S3.2.1.4. Also, the signature comparison at line 36 uses == instead of constant-time comparison. Tag: 'Timing-side-channel comparison', SSEM attribute: Authenticity, severity: MEDIUM — Local. Please remediate both (they share the same file but are independent root causes, so two patches or clearly separated sections). The file is attached.",
       "files": [
         "evals/inputs/webhook_handler.py"
       ],

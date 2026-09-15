@@ -23,7 +23,7 @@
           "text": "The corrective requirement has status: planned (never implemented or verified) and includes at least one behaviorally testable acceptance criterion that would have failed before a fix"
         },
         {
-          "text": "Any ASVS requirement IDs cited use 5.0 numbering only (V1–V17 chapters; e.g. V4.3.1 for SSRF is valid, V13.1 for API is valid) — no pre-5.0 chapter numbers appear (no V5.2.6, V10.x as 'Malicious Code', V12.6 as 'SSRF')"
+          "text": "Any ASVS requirement IDs cited use 5.0 numbering only (V1–V17 chapters; e.g. V1.3.6 for SSRF allowlisting is valid, V13.1 for API is valid) — no pre-5.0 chapter numbers appear (no V5.2.6, V10.x as 'Malicious Code', V12.6 as 'SSRF')"
         },
         {
           "text": "The output does not reproduce the exploit URL (http://169.254.169.254/...) or attack steps verbatim — it describes the engineering property that failed (e.g., 'the server fetches an arbitrary user-supplied URL without restricting the destination') and the observable consequence"

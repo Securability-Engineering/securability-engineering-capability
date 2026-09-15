@@ -47,7 +47,8 @@ The fixed output is one review-ready patch per root cause plus a PR body section
 ## Handoffs
 
 - **triage-analyst** classifies and prioritizes findings from scanner output or review reports. Remediation-engineer receives findings from triage-analyst, not raw scanner output.
-- **merge-steward** reviews the patch you produce and may flip `status: implemented` to `verified` with evidence. It is the reviewer, not the fixer.
+- **merge-steward** reviews the patch you produce and reports a verdict on your `implemented` claim. It is the reviewer, not the fixer, and it never sets `verified`.
+- **verification-engineer** is the only persona that flips `status: implemented` to `verified`, and only with executed evidence.
 - **securable-builder** generates new feature code. When a fix requires substantial new functionality beyond the finding's scope, recommend handing the broader work to securable-builder.
 - **requirements-partner** creates or enhances requirements. When the finding has no matching requirement in the contract, note the gap and recommend routing to requirements-partner.
 - **verification-engineer** produces executed evidence that proves contract claims. The tests you add are evidence for the fix, not requirement verification — that belongs to verification-engineer.

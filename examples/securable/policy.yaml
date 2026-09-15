@@ -6,8 +6,13 @@ system: Customer portal
 mode: advisory
 report_dir: .securable/reports
 
-# Gates are consulted only when mode is gate. Uncomment and switch mode to
-# gate to enable blocking merges on designated finding classes (S5.2.3).
+# Gates are consulted only when mode is gate. Switching mode to gate declares
+# the policy decision (S5.2.3); it does not enforce anything by itself. The
+# validator checks shape, the review skill stays advisory and only reports
+# which declared gates would trigger, and enforcement is a CI step your team
+# adds that reads this file (for example securable_status.py
+# --fail-on-unverified-touched, or a check on the persisted report's score
+# block). Uncomment to declare gates:
 # gates:
 #   - id: G-01
 #     description: Block merges with any CRITICAL or HIGH finding.

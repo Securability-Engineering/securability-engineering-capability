@@ -16,8 +16,8 @@
     },
     "report_dir": {
       "type": "string",
-      "pattern": "^(?!(?:^|.*/)\\.\\.(?:/|$))(?!/)",
-      "description": "Relative path where merge-time reports persist for the audit trail (S5.2.4). Must not contain '..' segments."
+      "pattern": "^(?![/\\\\])(?![A-Za-z]:)(?!(?:^|.*[/\\\\])\\.\\.(?:[/\\\\]|$)).+$",
+      "description": "Relative path where merge-time reports persist for the audit trail (S5.2.4). Must be project-relative: no leading / or \\, no drive letter or UNC prefix, and no '..' segment with either separator."
     },
     "gates": {
       "type": "array",

@@ -208,7 +208,14 @@ def check_touched_boundaries(status: dict, changed_files: list[str]) -> list[dic
             continue
         bid = bnd.get("id", "")
         entry_points = bnd.get("entry_points", []) or []
+        # Entry points are usually written as "METHOD /path"; framework
+        # source rarely contains that literal (a decorator names the path and
+        # the method separately), so the path component alone is also a needle.
         needles = [bid] + entry_points
+        for ep in entry_points:
+            parts = ep.split(None, 1)
+            if len(parts) == 2 and parts[1] not in needles:
+                needles.append(parts[1])
 
         is_touched = False
         for fp, text in file_texts.items():

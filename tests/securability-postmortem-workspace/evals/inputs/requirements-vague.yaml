@@ -1,3 +1,5 @@
+securable_contract: 1
+system: Document portal
 asvs_level: 1
 features:
   - id: F-01

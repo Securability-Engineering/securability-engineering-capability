@@ -202,6 +202,26 @@ def main() -> int:
             "must be a relative path",
         ),
         (
+            "policy-report-dir-backslash-dotdot",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: '..\\\\outside'"),
+            "must not contain '..' segments",
+        ),
+        (
+            "policy-report-dir-drive-letter",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: 'C:\\\\reports'"),
+            "must be a relative path",
+        ),
+        (
+            "policy-bad-tags-type",
+            lambda t: GATE_POLICY_BASE.replace("      severity: [CRITICAL, HIGH]", "      tags: HIGH"),
+            "'when.tags' must be a non-empty list",
+        ),
+        (
+            "policy-bad-unverified-touched-type",
+            lambda t: GATE_POLICY_BASE.replace("      severity: [CRITICAL, HIGH]", "      unverified_requirements_touched: yes-please"),
+            "must be true or false",
+        ),
+        (
             "policy-review-bad-type",
             lambda t: t.replace("max_not_assessed_for_score: 2", "max_not_assessed_for_score: not_a_number"),
             "must be a non-negative integer",
@@ -224,6 +244,11 @@ def main() -> int:
 
     # --- Dependencies invalid mutations ---
     DEPS_INVALID = [
+        (
+            "deps-missing-next-review",
+            lambda t: t.replace('    next_review: "2026-12-15"\n', ""),
+            "'next_review' is required",
+        ),
         (
             "deps-bad-ecosystem",
             lambda t: t.replace("ecosystem: pypi", "ecosystem: pip", 1),

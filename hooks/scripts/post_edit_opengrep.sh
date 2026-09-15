@@ -52,9 +52,15 @@ if [ ! -f "$RULES" ]; then
   exit 0
 fi
 
-# Run opengrep with a timeout (advisory — never block).
+# Run opengrep (advisory — never block). hooks.json already bounds the run
+# with a 30-second timeout; GNU `timeout` is used only where it exists so
+# the scan still happens on systems without it (macOS, minimal images).
 OG_OUTPUT=""
-OG_OUTPUT="$(timeout 30 opengrep scan --config "$RULES" --json "$FILE_PATH" 2>/dev/null)" || true
+if command -v timeout >/dev/null 2>&1; then
+  OG_OUTPUT="$(timeout 30 opengrep scan --config "$RULES" --json "$FILE_PATH" 2>/dev/null)" || true
+else
+  OG_OUTPUT="$(opengrep scan --config "$RULES" --json "$FILE_PATH" 2>/dev/null)" || true
+fi
 
 if [ -z "$OG_OUTPUT" ]; then
   exit 0

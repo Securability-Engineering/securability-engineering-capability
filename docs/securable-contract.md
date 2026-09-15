@@ -43,8 +43,11 @@ planned ──────────► implemented ────────�
   harness, when it believes the acceptance criteria are satisfied. The
   securability kernel and the generation skill both instruct this flip. An
   `implemented` claim is exactly that — a claim.
-- **`verified`** — flipped only by something that *checked*: the review skill,
-  the merge-time securability report, or a CI test. Requires `evidence`
+- **`verified`** — flipped only by something that *executed* a check: the
+  `securability-verification` skill (verification-engineer persona) after a
+  test passed in that run, or a CI test. The review skill and the merge-time
+  securability report record verdicts on `implemented` claims but never set
+  `verified`. Requires `evidence`
   (file:line, test name, report reference). Generators never set `verified`;
   the validator rejects `verified` without evidence.
 
