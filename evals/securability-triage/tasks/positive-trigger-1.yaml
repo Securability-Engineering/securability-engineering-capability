@@ -1,0 +1,16 @@
+id: positive-trigger-001
+name: Positive Trigger 1
+description: Scanner finding triage request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Triage these SAST findings, group them by root cause, and prioritize the fixes."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "triage"
+        - "findings"

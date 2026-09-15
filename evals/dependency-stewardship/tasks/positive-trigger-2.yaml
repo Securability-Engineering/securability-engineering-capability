@@ -1,0 +1,16 @@
+id: positive-trigger-002
+name: Positive Trigger 2
+description: Explicit dependency stewardship request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Please create a dependency stewardship record for this library and check its maintenance signals."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "dependency"
+        - "stewardship"

@@ -1,0 +1,16 @@
+id: positive-trigger-002
+name: Positive Trigger 2
+description: Explicit PRD securability request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Map these product requirements to ASVS 5.0 and find missing securability requirements."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "ASVS"
+        - "requirements"

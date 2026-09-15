@@ -1,0 +1,16 @@
+id: positive-trigger-001
+name: Positive Trigger 1
+description: Natural-language FIASSE adoption request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Can you assess whether our team is ready to adopt FIASSE and identify the biggest gaps?"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "adoption"
+        - "FIASSE"

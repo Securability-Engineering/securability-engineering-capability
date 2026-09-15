@@ -1,0 +1,16 @@
+id: positive-trigger-001
+name: Positive Trigger 1
+description: Natural-language code review request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Review this code's security posture and score its securability qualities."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "review"
+        - "securability"

@@ -1,0 +1,16 @@
+id: positive-trigger-001
+name: Positive Trigger 1
+description: Natural-language dependency review request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Can you audit our third-party packages and tell me which dependencies need attention?"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "dependency"
+        - "audit"

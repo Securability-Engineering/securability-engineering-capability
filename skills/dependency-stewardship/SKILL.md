@@ -27,7 +27,7 @@ Adjacent phrasings: "is this library safe to use?", "should we add X?", "what de
 
 ## Inputs
 
-- **Manifest and lockfile(s)**: `package.json` / `package-lock.json`, `pyproject.toml` / `requirements.txt` / lockfile, `go.mod` / `go.sum`, `Cargo.toml` / `Cargo.lock`, `pom.xml`, `*.csproj`, `Gemfile.lock`, `composer.lock`
+- **Manifest and lockfile(s)**: `package.json` / `package-lock.json`, `pyproject.toml` / `requirements.txt` / lockfile, `go.mod` / `go.sum`, `Cargo.toml` / `Cargo.lock`, `pom.xml`, `*.csproj`, `Gemfile.lock`, `composer.lock`. If a dependency appears with different pinned versions across manifests, create separate records per scope/manifest and note the version divergence as a finding.
 - **The diff** when reviewing a PR that adds or updates dependencies
 - **`.securable/dependencies.yaml`** when present (existing records)
 - **Audit tools already on PATH**: `osv-scanner`, `pip-audit`, `npm audit`, `cargo audit`, `govulncheck` — use whichever are present; never install any
@@ -71,7 +71,7 @@ Do not install new tools uninvited; where such tooling is absent, that absence i
 Observe what the tools present can tell you. Use the package manager's own metadata commands:
 
 - `npm view <pkg>` / `pip show <pkg>` / `go list -m -json <module>` / `cargo info <crate>` / registry metadata
-- Repository activity (if the harness can fetch): last release date, open issue count, maintainer count, release cadence
+- If the agent has network/fetch tooling available, use it to gather repository activity (last release date, open issue count, maintainer count, release cadence); otherwise record maintenance signals as unverified and state that fetch tooling was unavailable.
 
 **Record facts, not adjectives.** Write `"Latest release 2.8.0 on 2023-09-10"` — not `"well-maintained"`. Derive the verdict from facts:
 
@@ -153,14 +153,14 @@ When the project carries `scripts/validate_securable.py`, run it:
 python3 scripts/validate_securable.py --dir .securable
 ```
 
-Fix any validation errors before finishing. When the validator is unavailable, state that validation was not run.
+Fix any validation errors before finishing. When the validator is unavailable, state that validation was not run. If validation errors are unrelated to the current record and pre-exist in the file, report them separately without blocking on unrelated fixes, and note them in the Securability Notes trade-offs.
 
 ### Step 9 — Periodic review mode
 
 When the user requests a review sweep or when records exist past their `next_review` date:
 
-1. Iterate all dependency records where `next_review` is at or past today's date.
-2. Re-run Steps 3-5 (transitives, maintenance signals, audit) with current data.
+1. Iterate all dependency records where `next_review` is at or past today's date. If a dependency in the manifest has no existing record, treat it as a new evaluation (Steps 1-8) rather than a review sweep update.
+2. Re-run Steps 3-5 (transitives, maintenance signals, audit) with current data. For each dependency in the sweep, apply Steps 3-5 in order and do not skip any even if a prior step returned unverified; if audit remains unverified, default the recommendation to keep with a noted audit gap.
 3. For each, recommend one of: **keep** (no changes needed), **upgrade** (newer version available, current version has findings or is stale), **replace** (dependency should be swapped — state the engineering rationale, not just "it's old").
 4. Update the record with fresh dates, signals, and audit results.
 
