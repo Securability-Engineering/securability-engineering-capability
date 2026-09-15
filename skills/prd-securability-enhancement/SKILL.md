@@ -39,7 +39,7 @@ Ask the user for whatever is missing before starting:
 - Compliance or risk context, if any (HIPAA, PCI, SOC 2, regulated industry)
 - Whether they have an ASVS level preference, or want this skill to recommend one
 
-If the artifact is large, parse the features inline; do not require the user to pre-extract them.
+If the artifact is large, parse the features inline; do not require the user to pre-extract them. If the artifact exceeds a reasonable single-pass size (e.g., more than ~50 features), process it in batches of features, emitting partial coverage matrices and combining them at the end.
 
 ## Procedure
 
@@ -132,20 +132,29 @@ Ambiguous "secure" or "robust" language is not acceptable here.
 
 ### Step 6 — Emit the enhanced PRD artifact
 
-Produce these sections in order, using the exact templates below.
+Produce these sections in order, using the exact templates below. Before finalizing, verify every step's output is present for every feature using this checklist:
+
+| Step | Required Output | Validation |
+|------|------------------|------------|
+| 2 | ASVS level chosen and justified | Stated once, applies to all features |
+| 3 | ASVS chapter mapping per feature | Every feature has at least one mapped section or an explicit N/A rationale |
+| 3 | Gap-pattern check per feature | Matched pattern applied, or noted as not applicable |
+| 4 | Securability Notes per feature | Short paragraph present, not a full attribute enumeration |
+| 5 | Acceptance criteria per added/strengthened requirement | Each is behaviorally testable |
+| 7 | Contract entries emitted and validated | `scripts/validate_securable.py` run and passing |
 
 ### Step 7 — Emit the machine-readable contract
 
 Alongside the prose PRD, write the same requirements as a **securable contract**: `.securable/requirements.yaml` (and `.securable/boundaries.yaml` for the trust-boundary map discovered in Step 1). This is the artifact that outlives the session — any code-generation harness reads it, the generation skill implements against it and flips `status: planned → implemented`, and merge review flips `implemented → verified` with evidence. Never emit a requirement here that lacks a testable acceptance criterion (that would be a control citation, not a requirement — FIASSE v1.1 S6.1.1).
 
 - Shape: `schema/securable/requirements.schema.json` and `schema/securable/boundaries.schema.json` (paths relative to the plugin root); worked example in `examples/securable/`.
-- Every ASVS reference must exist in `data/asvs/`; run `scripts/validate_securable.py --dir .securable` after writing and fix anything it rejects before finishing.
+- Every ASVS reference must exist in `data/asvs/`; run `scripts/validate_securable.py --dir .securable` after writing and fix anything it rejects before finishing. If validation fails after two correction attempts, stop and report the specific validator errors to the user instead of continuing to guess.
 - Requirements above the chosen baseline level carry `level` and `escalation: true`.
 - Write the contract into the **user's project** at `.securable/` (ask before creating the directory if the project layout is unclear).
 
 ## ASVS Coverage Gap Pattern Table
 
-These are the gaps PRDs reliably miss. When you see one of the trigger phrasings on the left, add the named requirements on the right — they are almost always missing in the source artifact.
+These are the gaps PRDs reliably miss. When you see one of the trigger phrasings on the left, add the named requirements on the right — they are almost always missing in the source artifact. If a feature does not match any listed gap pattern, still perform the full ASVS chapter mapping in Step 3 using the common mappings table, and note in Securability Notes that no specific gap pattern applied.
 
 | PRD trigger phrasing (what the feature *says*) | Almost-always-missing requirements | ASVS 5.0 sections | Tag |
 |---|---|---|---|
@@ -282,7 +291,7 @@ This is the level of specificity the output should hit — concrete, testable, a
 When the input is a single user story, ticket, or feature description — not a full PRD — run a focused variant of the procedure:
 
 1. **Parse the story** — extract actor, data touched, trust boundaries crossed, and existing acceptance criteria (Step 1, single feature).
-2. **Inherit the ASVS level** — use the level from `.securable/requirements.yaml` if it exists, or ask.
+2. **Inherit the ASVS level** — use the level from `.securable/requirements.yaml` if it exists, or ask. If the inherited level appears inconsistent with the feature's apparent sensitivity, flag this discrepancy in Open Gaps rather than silently overriding it.
 3. **Map to ASVS and apply gap patterns** — same as Steps 3–4, scoped to this one feature.
 4. **Add Security Features and Acceptance Criteria** — per FIASSE v1.1 S4.1.2, the output includes Security Features (specific security capabilities the story requires), Threat Scenarios (referencing the `threat-modeling` skill as the source — do not inline a full threat model here), and testable Security Acceptance Criteria. This is the first leading indicator of adoption: security acceptance criteria appearing on stories as a matter of course (FIASSE v1.1 S8.2.1).
 5. **Emit the enhanced story** — the original story text, augmented with the sections above and a short Securability Notes paragraph.
