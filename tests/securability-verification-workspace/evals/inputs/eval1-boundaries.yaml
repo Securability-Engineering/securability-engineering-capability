@@ -1,0 +1,11 @@
+# Trust boundary map — eval fixture (refuted-claim scenario)
+securable_contract: 1
+system: Auth service
+
+boundaries:
+  - id: public-api
+    kind: http
+    description: Public HTTPS API for authentication flows.
+    entry_points: ["POST /reset", "POST /reset/confirm"]
+    data: [email, reset-token, credential]
+    authority: Server-side session store; tokens stored as salted hashes.

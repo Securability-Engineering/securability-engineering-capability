@@ -1,0 +1,29 @@
+{
+  "description": "Securable engineering plugin hooks — opt-in held checks and kernel injection. See hooks/README.md for setup.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session_kernel.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post_edit_opengrep.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

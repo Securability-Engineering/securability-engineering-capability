@@ -1,0 +1,25 @@
+securable_contract: 1
+system: Notification service
+asvs_level: 1
+
+features:
+  - id: F-01
+    title: Notification dispatch
+    actor: Internal worker relaying messages to third-party providers
+    data: [message-body, recipient-address]
+    boundaries: [sms-provider, email-relay, push-gateway, webhook-relay]
+    requirements:
+      - id: F-01-R1
+        text: Every outbound HTTP call to a third-party provider carries an explicit timeout so a hung upstream cannot block the worker indefinitely.
+        asvs: []
+        acceptance:
+          - All requests.post and requests.get calls in the integrations module carry an explicit timeout parameter.
+          - A timeout produces a logged, structured error with actor, action, target, and outcome.
+        status: planned
+      - id: F-01-R2
+        text: API keys for third-party providers never appear in source code.
+        asvs: [V13.3]
+        acceptance:
+          - No API key literals exist in the integrations module.
+          - Keys are read from environment variables or a secrets manager.
+        status: planned

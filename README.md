@@ -4,23 +4,42 @@ A Claude Code plugin offering secure code generation and securability analysis t
 
 ## Overview
 
-This plugin augments Claude Code with three capabilities:
+This plugin augments a coding agent with eleven capabilities grouped by the five FIASSE integration layers:
 
-1. **Securability Engineering Review** — Analyze existing code for securable qualities using the ten SSEM attributes (FIASSE v1.1) across three pillars (Maintainability, Trustworthiness, Reliability), producing scored assessments with actionable findings.
-2. **Securability Engineering Code Generation** — Generate new code that embodies securable qualities by default, applying OWASP FIASSE principles as engineering constraints.
-3. **PRD Securability Enhancement** — Enhance product requirements documents with ASVS level selection, feature-level ASVS requirement mapping, SSEM implementation annotations, and FIASSE tenet coverage.
-4. **FIASSE Lookup** — Answer FIASSE/SSEM questions (definitions, principles, attributes, scoring conduct, section numbers) from the bundled framework reference, citing section numbers.
+**L1 — Requirements, pre-programming**
+1. **PRD Securability Enhancement** — Enhance product requirements with ASVS 5.0 coverage and FIASSE/SSEM implementation guidance.
+2. **Threat Modeling** — Produce boundary maps, threat scenarios, and escalations from code and specifications.
+
+**L2 — Guardrails while building**
+3. **Securability Engineering Code Generation** — Generate code that embodies securable qualities by default.
+4. **Dependency Stewardship** — Audit, record, and monitor third-party dependencies against stewardship criteria.
+
+**L3 — Code control at merge time**
+5. **Securability Engineering Review** — Analyze existing code for securable qualities using the ten SSEM attributes (FIASSE v1.1) across three pillars (Maintainability, Trustworthiness, Reliability), producing scored assessments with actionable findings.
+6. **Securability Triage** — Turn scanner output into actionable security intelligence with root-cause grouping.
+7. **Securability Remediation** — Produce review-ready patches for confirmed findings, each with a test and Securability Note.
+
+**L4 — Pre-deployment validation**
+8. **Securability Verification** — Generate boundary contract tests, validate deployment configuration, flip implemented to verified with evidence.
+
+**L5 — Production and incident response**
+9. **Securability Postmortem** — Extract failed attributes, regression tests, candidate rules, and new requirements from incident reports.
+
+**Program**
+10. **FIASSE Adoption** — Assess organizational readiness, produce leading/lagging indicators, and map roles to FIASSE responsibilities.
+11. **FIASSE Lookup** — Answer FIASSE/SSEM questions from the bundled framework reference, citing section numbers.
 
 Agent-facing guidance lives in [AGENTS.md](AGENTS.md) (the [AGENTS.md standard](https://agents.md) entry point, imported by `CLAUDE.md`). A critical assessment of this plugin and its enhancement roadmap lives in [docs/critical-review-2026-08.md](docs/critical-review-2026-08.md).
 
 ## Elevating any harness
 
-Beyond the skills, the pack carries its impact in three layers so *any* code-generation harness — not only the one it's loaded into — is bound by it:
+Beyond the skills, the pack carries its impact in four layers so *any* code-generation harness — not only the one it's loaded into — is bound by it:
 
 1. **The securability kernel** (`core/kernel.md`) — a ~300-token always-on distillation of the non-negotiables (parse-don't-trust, server-side authority, the never-emit list, observable security, Securability Notes). `scripts/build_bindings.py` generates per-harness bindings from it — Cursor rule, Copilot instructions, Gemini CLI context, Aider conventions, and the kernel block inside AGENTS.md — with a size budget and a CI drift guard (`--check`). Bindings are generated, never edited.
    *Measured (kernel A/B, `tests/kernel_ab.py`, deterministic detectors, claude CLI)*: on a strong frontier model the baseline already avoided all detector anti-patterns (0/0 — verified real, not detector blindness), while the kernel's process contract was adopted 3/3 (Securability Notes present) vs 0/3 baseline. Anti-pattern deltas are expected to show on weaker models — measuring that per harness is the cross-harness scoreboard's job (roadmap M5).
-2. **The securable contract** (`.securable/requirements.yaml` + `boundaries.yaml` in consuming projects) — repo-resident, machine-readable requirements with testable acceptance criteria and a `planned → implemented → verified` lifecycle. Emitted by the PRD skill, honored by generation in any harness, verified at review. `scripts/validate_securable.py` enforces the semantics — including that every cited ASVS ID exists in the bundled 5.0 catalog. See [docs/securable-contract.md](docs/securable-contract.md).
-3. **Held checks** — `rules/opengrep/securable.yaml` maps the skills' anti-pattern tags to enforceable [opengrep](https://github.com/opengrep/opengrep) rules (SSEM/ASVS metadata on each; opengrep is the LGPL, community-governed scanner), tested against paired fail/pass fixtures; and `scripts/securability_report.sh` + `.github/workflows/securability-report.yml` produce the FIASSE S5.2.1 Securability Report on pull requests via any agent CLI (`claude`, `codex`, `opencode`) — advisory by default, per S5.2.2.
+2. **The securable contract** (`.securable/requirements.yaml` + `boundaries.yaml` + `policy.yaml` + `dependencies.yaml` in consuming projects) — repo-resident, machine-readable requirements with testable acceptance criteria and a `planned → implemented → verified` lifecycle. Emitted by the PRD skill, honored by generation in any harness, verified at review. `scripts/validate_securable.py` enforces the semantics — including that every cited ASVS ID exists in the bundled 5.0 catalog. See [docs/securable-contract.md](docs/securable-contract.md).
+3. **Agent personas** (`agents/*.md`) — ten role-scoped personas (requirements-partner, boundary-mapper, securable-builder, dependency-steward, merge-steward, triage-analyst, remediation-engineer, verification-engineer, incident-learner, adoption-coach) spanning all five FIASSE layers. Each has a tool allowlist, a never list, and a fixed output artifact. `scripts/build_agents.py` generates per-harness persona bindings (Cursor, Copilot, opencode, generic) with a CI drift guard (`--check`). See [docs/personas.md](docs/personas.md).
+4. **Held checks** — `rules/opengrep/securable.yaml` maps the skills' anti-pattern tags to enforceable [opengrep](https://github.com/opengrep/opengrep) rules (SSEM/ASVS metadata on each; opengrep is the LGPL, community-governed scanner), tested against paired fail/pass fixtures; and `scripts/securability_report.sh` + `.github/workflows/securability-report.yml` produce the FIASSE S5.2.1 Securability Report on pull requests via any agent CLI (`claude`, `codex`, `opencode`) — advisory by default, per S5.2.2.
 
 Run everything CI runs with `scripts/run_checks.sh`.
 
@@ -91,7 +110,7 @@ scripts/install_skills.sh --target "$HOME/.config/opencode"
 scripts/install_skills.sh --target .claude
 ```
 
-The script copies `skills/`, `data/`, `plays/`, and `templates/` (plus `schema/`, `core/`, and `rules/`) together under one root — the layout the skills' internal references depend on.
+The script copies `skills/`, `data/`, `plays/`, `templates/`, `agents/`, `schema/`, `core/`, `rules/`, `bindings/`, and `docs/` together under one root — the layout the skills' internal references depend on. Persona definitions in `agents/` ride along with the skills tree; pre-generated persona bindings for each harness ship under `bindings/`.
 
 ### Developing this plugin
 
@@ -101,12 +120,41 @@ Run `claude --plugin-dir .` from the repo root so commands and skills load exact
 
 Commands live in `commands/` (the plugin-standard location) and are thin dispatchers — each delegates to its skill, which holds the authoritative procedure.
 
-| Command                      | Description                                               |
-| ---------------------------- | --------------------------------------------------------- |
-| `/securability-review`       | Run a full SSEM securability assessment on code           |
-| `/secure-generate`           | Generate code with FIASSE/SSEM constraints applied        |
-| `/prd-securability-enhance`  | Enhance PRD features with ASVS + FIASSE/SSEM requirements |
-| `/fiasse-lookup`             | Look up FIASSE/SSEM reference material by topic           |
+| Command                       | Description                                                |
+| ----------------------------- | ---------------------------------------------------------- |
+| `/securability-review`        | Run a full SSEM securability assessment on code            |
+| `/secure-generate`            | Generate code with FIASSE/SSEM constraints applied         |
+| `/prd-securability-enhance`   | Enhance PRD features with ASVS + FIASSE/SSEM requirements  |
+| `/fiasse-lookup`              | Look up FIASSE/SSEM reference material by topic            |
+| `/threat-model`               | Produce a boundary map and threat scenarios                 |
+| `/securability-triage`        | Triage scanner output into actionable intelligence         |
+| `/securability-remediate`     | Produce review-ready patches for confirmed findings        |
+| `/securability-verify`        | Generate boundary tests and validate deployment config     |
+| `/securability-postmortem`    | Extract lessons and new requirements from an incident      |
+| `/dependency-steward`         | Audit and record dependency stewardship                    |
+| `/fiasse-adoption`            | Assess organizational readiness for FIASSE adoption        |
+| `/securable-status`           | Print contract status (planned/implemented/verified)       |
+
+## Personas
+
+Ten agent personas scope the skills by accountability and permission. Each persona carries a tool allowlist, a never list, and a fixed output artifact. See [docs/personas.md](docs/personas.md) for the full roster, design rules, orchestration patterns, and per-platform invocation.
+
+| Persona | Layer | Primary skill |
+| ------- | ----- | ------------- |
+| `requirements-partner` | L1 | prd-securability-enhancement |
+| `boundary-mapper` | L1 | threat-modeling |
+| `securable-builder` | L2 | securability-engineering |
+| `dependency-steward` | L2 | dependency-stewardship |
+| `merge-steward` | L3 | securability-engineering-review |
+| `triage-analyst` | L3 | securability-triage |
+| `remediation-engineer` | L3 | securability-remediation |
+| `verification-engineer` | L4 | securability-verification |
+| `incident-learner` | L5 | securability-postmortem |
+| `adoption-coach` | Program | fiasse-adoption |
+
+## Platform Guides
+
+Per-harness guides at [docs/platforms/](docs/platforms/) explain what the pack provides natively on each harness, how to install, invoke skills and personas, and what remains manual or unavailable. See the [platform index](docs/platforms/README.md) for a capability matrix across all nine guides.
 
 ## Example: PRD Enhancement
 
@@ -148,11 +196,17 @@ AGENTS.md                          # Canonical agent entry point (AGENTS.md stan
 CLAUDE.md                          # Thin stub importing AGENTS.md (project-mode Claude Code)
 core/
   kernel.md                        # Securability kernel — source of truth for all bindings
-bindings/                          # GENERATED per-harness kernel bindings (never edit)
+agents/                            # Canonical persona definitions (ten personas, five FIASSE layers)
+bindings/                          # GENERATED per-harness kernel + persona bindings (never edit)
   cursor/securable.mdc             # Cursor always-apply rule
+  cursor/agents/                   # Cursor persona bindings
   copilot/copilot-instructions.md  # GitHub Copilot custom instructions
+  copilot/agents/                  # Copilot persona bindings
   gemini/GEMINI.md                 # Gemini CLI context
   aider/CONVENTIONS.md             # Aider conventions
+  opencode/agents/                 # opencode persona bindings
+  generic/agents/                  # Generic AGENTS.md persona bindings
+hooks/                             # Opt-in Claude Code hooks (SessionStart kernel, post-edit opengrep)
 schema/
   securable/                       # JSON Schemas for the securable contract (.securable/*)
 rules/
@@ -168,11 +222,7 @@ rules/
   INSTALL.md                       # Agent-followable install instructions (opencode)
 .agents/
   INSTALL.md                       # Agent-followable install instructions (any AGENTS.md/SKILL.md agent)
-commands/
-  securability-review.md           # /securability-review — thin dispatcher to the review skill
-  secure-generate.md               # /secure-generate — thin dispatcher to the generation skill
-  prd-securability-enhance.md      # /prd-securability-enhance — thin dispatcher to the PRD skill
-  fiasse-lookup.md                 # /fiasse-lookup — thin dispatcher to the lookup skill
+commands/                          # Twelve thin slash-command dispatchers (see table above)
 .claude/
   settings.json                    # Repo-development permissions (not shipped to plugin installs)
 .claudeignore                      # Files excluded from context (repo development only)
@@ -180,11 +230,7 @@ commands/
 data/
   asvs/                            # OWASP ASVS 5.0 requirement chapters (V1–V17)
   fiasse/                          # FIASSE v1.1 reference sections (S1.x–S8.x + Appendix A as SA.x)
-skills/
-  securability-engineering/        # Code generation wrapper skill
-  securability-engineering-review/ # Code analysis skill
-  prd-securability-enhancement/    # PRD securability enhancement skill
-  fiasse-lookup/                   # FIASSE/SSEM reference lookup skill
+skills/                            # Eleven skills (see AGENTS.md § Skills)
 plays/
   code-generation/                 # Step-by-step code generation workflows
   code-analysis/                   # Step-by-step analysis procedures
@@ -192,39 +238,54 @@ plays/
 templates/
   finding.md                       # Individual finding format
   report.md                        # Full assessment report format
+  threat-model.md                  # Threat model output format
+  triage.md                        # Triage output format
+  postmortem.md                    # Postmortem output format
 template/
   SKILL.md                         # Template for creating new skills
 scripts/
-  extract_fiasse_sections.py       # Utility to extract sections from FIASSE v1.1 framework markdown
-  install_skills.sh                # Layout-preserving installer for opencode / other agent tools
   build_bindings.py                # Kernel -> bindings generator (--check = CI drift guard)
+  build_agents.py                  # Persona -> per-harness bindings generator (--check = CI drift guard)
   validate_securable.py            # Securable-contract validator (shape + semantics + ASVS existence)
+  securable_status.py              # Contract status summary (planned/implemented/verified)
   check_refs.py                    # ASVS/FIASSE reference integrity checker
   check_manifests.py               # Per-agent manifest lockstep checker (name/version/license)
+  install_skills.sh                # Layout-preserving installer for opencode / other agent tools
   securability_report.sh           # Merge-time Securability Report via any agent CLI
   test_opengrep_rules.sh           # Rule-pack test runner (skips if opengrep absent)
   run_checks.sh                    # Everything CI runs, in one command
   build_plugin_zip.sh              # Release zip builder
   generate_marketplace_json.sh     # Release marketplace manifest builder
+  extract_fiasse_sections.py       # Utility to extract sections from FIASSE v1.1 framework markdown
 examples/
   prd-enhancement/                 # Before/after PRD securability enhancement example
-  securable/                       # Worked securable-contract example (requirements + boundaries)
+  securable/                       # Worked securable-contract example (requirements + boundaries + policy + dependencies)
 docs/
   critical-review-2026-08.md       # Critical assessment + enhancement plan for this plugin
   securable-contract.md            # The securable contract: files, lifecycle, validation
+  personas.md                      # Persona roster, design rules, orchestration
+  platforms/                       # Per-harness platform guides (nine harnesses)
+  plan-five-layers-2026-09.md      # Five-layer coverage plan and checklist
 tests/                             # Regression tests (see Testing below)
   run_tests.py                     # Claude Code CLI test runner (skill workspaces)
   kernel_ab.py                     # Kernel A/B runner + detector self-tests
   README.md                        # Test workspace conventions
-  prd-securability-enhancement-workspace/
-  securability-engineering-workspace/
-  securability-engineering-review-workspace/
+  <skill>-workspace/               # Per-skill eval workspaces (ten of eleven skills; fiasse-lookup has no workspace)
   kernel-ab-workspace/             # Kernel A/B evals (naturalistic prompts, deterministic grading)
   securable-contract/              # Contract validator tests
   opengrep-fixtures/               # Paired fail/pass fixtures for the rule pack
 ```
 
 ## Testing
+
+```bash
+scripts/run_checks.sh                 # everything CI runs: refs, contract, bindings, agents, manifests, schemas, hooks
+python3 scripts/check_refs.py         # ASVS/FIASSE references resolve against data/
+python3 scripts/build_agents.py --check  # persona binding drift guard
+python3 scripts/check_manifests.py    # manifest lockstep
+python3 scripts/securable_status.py --dir examples/securable
+OPENGREP_BIN=opengrep scripts/test_opengrep_rules.sh # needs opengrep installed
+```
 
 Each skill has a regression workspace under [`tests/`](tests/) that exercises it
 on three realistic prompts and grades the output via LLM-as-judge against an

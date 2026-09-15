@@ -1,0 +1,46 @@
+# Securable requirements contract — eval fixture
+securable_contract: 1
+asvs_level: 2
+system: Inventory API
+generated_by: prd-securability-enhancement@2.2.0
+
+features:
+  - id: F-01
+    title: Create inventory item
+    actor: Authenticated warehouse operator
+    data: [item-name, quantity, sku]
+    boundaries: [warehouse-api]
+    requirements:
+      - id: F-01-R1
+        text: POST /items accepts only the fields name, sku, and quantity; unexpected fields are rejected with 422.
+        asvs: [V2.2.1]
+        acceptance:
+          - A request with extra fields returns 422 and no item is created.
+        status: implemented
+      - id: F-01-R2
+        text: Item creation is logged with actor, action, target, and outcome.
+        asvs: [V16.2.1]
+        acceptance:
+          - Every successful or failed creation emits a structured log event with actor, action, target, and outcome.
+        status: implemented
+
+  - id: F-02
+    title: List inventory items
+    actor: Authenticated warehouse operator
+    data: [item-name, quantity, sku]
+    boundaries: [warehouse-api]
+    requirements:
+      - id: F-02-R1
+        text: GET /items returns only items belonging to the authenticated operator's tenant.
+        asvs: [V8.2.2]
+        acceptance:
+          - A request scoped to tenant A never returns tenant B items.
+        status: implemented
+
+cross_cutting:
+  - id: CC-R1
+    text: All API endpoints enforce a 1 MB request body limit.
+    asvs: []
+    acceptance:
+      - A request exceeding 1 MB is rejected with 413 before any parsing occurs.
+    status: implemented

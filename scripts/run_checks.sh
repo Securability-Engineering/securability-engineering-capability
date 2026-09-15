@@ -21,18 +21,23 @@ run() {
 run python3 scripts/check_refs.py
 run python3 scripts/validate_securable.py --dir examples/securable
 run python3 tests/securable-contract/test_validate.py
+run python3 scripts/securable_status.py --dir examples/securable
 run python3 scripts/build_bindings.py --check
+run python3 scripts/build_agents.py --check
 run python3 tests/kernel_ab.py --self-test
 run python3 scripts/check_manifests.py
 run python3 - <<'EOF'
 import json, glob, sys, yaml
 paths = [".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", ".claude/settings.json",
          ".cursor-plugin/plugin.json", ".devin-plugin/plugin.json",
-         "schema/securable/requirements.schema.json", "schema/securable/boundaries.schema.json"]
+         "schema/securable/requirements.schema.json", "schema/securable/boundaries.schema.json",
+         "schema/securable/policy.schema.json", "schema/securable/dependencies.schema.json",
+         "hooks/hooks.json"]
 paths += glob.glob("tests/*/evals/evals.json") + ["tests/kernel-ab-workspace/evals.json"]
 for p in paths:
     json.load(open(p)); print(f"ok {p}")
-for p in ["rules/opengrep/securable.yaml", "examples/securable/requirements.yaml", "examples/securable/boundaries.yaml"]:
+for p in ["rules/opengrep/securable.yaml", "examples/securable/requirements.yaml", "examples/securable/boundaries.yaml",
+          "examples/securable/policy.yaml", "examples/securable/dependencies.yaml"]:
     yaml.safe_load(open(p)); print(f"ok {p}")
 EOF
 run bash -n scripts/build_plugin_zip.sh
@@ -40,6 +45,19 @@ run bash -n scripts/generate_marketplace_json.sh
 run bash -n scripts/install_skills.sh
 run bash -n scripts/securability_report.sh
 run bash -n scripts/test_opengrep_rules.sh
+run bash -n hooks/scripts/session_kernel.sh
+run bash -n hooks/scripts/post_edit_opengrep.sh
+
+echo
+echo "== py_compile scripts/*.py =="
+for pyf in scripts/*.py; do
+  if python3 -m py_compile "$pyf"; then
+    echo "ok $pyf"
+  else
+    echo "^^ FAILED: py_compile $pyf" >&2
+    FAILED=1
+  fi
+done
 
 echo
 echo "== opengrep pack =="

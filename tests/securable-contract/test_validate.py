@@ -19,6 +19,8 @@ EXAMPLES = REPO / "examples" / "securable"
 
 VALID_REQUIREMENTS = (EXAMPLES / "requirements.yaml").read_text(encoding="utf-8")
 VALID_BOUNDARIES = (EXAMPLES / "boundaries.yaml").read_text(encoding="utf-8")
+VALID_POLICY = (EXAMPLES / "policy.yaml").read_text(encoding="utf-8")
+VALID_DEPENDENCIES = (EXAMPLES / "dependencies.yaml").read_text(encoding="utf-8")
 
 # (name, mutate(requirements_text) -> text, expected error substring)
 INVALID_CASES = [
@@ -116,6 +118,187 @@ def main() -> int:
             d = Path(td)
             (d / "requirements.yaml").write_text(mutated, encoding="utf-8")
             (d / "boundaries.yaml").write_text(VALID_BOUNDARIES, encoding="utf-8")
+            proc = run_validator(d)
+            out = proc.stdout + proc.stderr
+            if proc.returncode == 0:
+                failures.append(f"{name}: expected rejection, validator passed")
+            elif expected not in out:
+                failures.append(f"{name}: rejected, but without expected message {expected!r}:\n{out}")
+            else:
+                print(f"ok  {name} rejected as expected")
+
+    # --- Policy: valid example ---
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "policy.yaml").write_text(VALID_POLICY, encoding="utf-8")
+        proc = run_validator(d)
+        if proc.returncode != 0:
+            failures.append(f"valid policy rejected:\n{proc.stdout}{proc.stderr}")
+        else:
+            print("ok  valid-policy accepted")
+
+    # --- Dependencies: valid example ---
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "requirements.yaml").write_text(VALID_REQUIREMENTS, encoding="utf-8")
+        (d / "dependencies.yaml").write_text(VALID_DEPENDENCIES, encoding="utf-8")
+        proc = run_validator(d)
+        if proc.returncode != 0:
+            failures.append(f"valid dependencies rejected:\n{proc.stdout}{proc.stderr}")
+        else:
+            print("ok  valid-dependencies accepted")
+
+    # --- Policy invalid mutations ---
+    # Base policy with gates enabled, built from scratch to avoid duplicate-key fragility.
+    GATE_POLICY_BASE = (
+        "securable_contract: 1\n"
+        "system: Customer portal\n"
+        "mode: gate\n"
+        "report_dir: .securable/reports\n"
+        "gates:\n"
+        "  - id: G-01\n"
+        "    description: Block merges with any CRITICAL or HIGH finding.\n"
+        "    when:\n"
+        "      severity: [CRITICAL, HIGH]\n"
+    )
+
+    POLICY_INVALID = [
+        (
+            "policy-bad-mode",
+            lambda t: t.replace("mode: advisory", "mode: enforce"),
+            "'mode' must be one of",
+        ),
+        (
+            "policy-duplicate-gate-id",
+            lambda t: GATE_POLICY_BASE + "  - id: G-01\n    description: Duplicate.\n    when:\n      severity: [LOW]\n",
+            "duplicate gate id G-01",
+        ),
+        (
+            "policy-bad-gate-id",
+            lambda t: GATE_POLICY_BASE.replace("id: G-01", "id: GATE-1"),
+            "must match G-<n>",
+        ),
+        (
+            "policy-bad-severity",
+            lambda t: GATE_POLICY_BASE.replace("severity: [CRITICAL, HIGH]", "severity: [EXTREME]"),
+            "severity 'EXTREME' not in",
+        ),
+        (
+            "policy-bad-attribute",
+            lambda t: GATE_POLICY_BASE.replace(
+                "      severity: [CRITICAL, HIGH]",
+                "      attribute_below:\n        authorization: 3",
+            ),
+            "not in the ten SSEM attributes",
+        ),
+        (
+            "policy-report-dir-dotdot",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: ../outside/reports"),
+            "must not contain '..' segments",
+        ),
+        (
+            "policy-report-dir-absolute",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: /etc/passwd"),
+            "must be a relative path",
+        ),
+        (
+            "policy-report-dir-backslash-dotdot",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: '..\\\\outside'"),
+            "must not contain '..' segments",
+        ),
+        (
+            "policy-report-dir-drive-letter",
+            lambda t: t.replace("report_dir: .securable/reports", "report_dir: 'C:\\\\reports'"),
+            "must be a relative path",
+        ),
+        (
+            "policy-bad-tags-type",
+            lambda t: GATE_POLICY_BASE.replace("      severity: [CRITICAL, HIGH]", "      tags: HIGH"),
+            "'when.tags' must be a non-empty list",
+        ),
+        (
+            "policy-bad-unverified-touched-type",
+            lambda t: GATE_POLICY_BASE.replace("      severity: [CRITICAL, HIGH]", "      unverified_requirements_touched: yes-please"),
+            "must be true or false",
+        ),
+        (
+            "policy-review-bad-type",
+            lambda t: t.replace("max_not_assessed_for_score: 2", "max_not_assessed_for_score: not_a_number"),
+            "must be a non-negative integer",
+        ),
+    ]
+
+    for name, mutate, expected in POLICY_INVALID:
+        mutated = mutate(VALID_POLICY)
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "policy.yaml").write_text(mutated, encoding="utf-8")
+            proc = run_validator(d)
+            out = proc.stdout + proc.stderr
+            if proc.returncode == 0:
+                failures.append(f"{name}: expected rejection, validator passed")
+            elif expected not in out:
+                failures.append(f"{name}: rejected, but without expected message {expected!r}:\n{out}")
+            else:
+                print(f"ok  {name} rejected as expected")
+
+    # --- Dependencies invalid mutations ---
+    DEPS_INVALID = [
+        (
+            "deps-missing-next-review",
+            lambda t: t.replace('    next_review: "2026-12-15"\n', ""),
+            "'next_review' is required",
+        ),
+        (
+            "deps-bad-ecosystem",
+            lambda t: t.replace("ecosystem: pypi", "ecosystem: pip", 1),
+            "'ecosystem' must be one of",
+        ),
+        (
+            "deps-duplicate-name",
+            lambda t: t.replace("name: structlog", "name: pyjwt"),
+            "duplicate dependency name 'pyjwt'",
+        ),
+        (
+            "deps-audit-clean-no-tool",
+            lambda t: t.replace("tool: pip-audit", "tool: none").replace("result: clean", "result: clean", 1),
+            "requires a tool",
+        ),
+        (
+            "deps-tool-none-not-unverified",
+            lambda t: t.replace("tool: none\n      result: unverified", "tool: none\n      result: clean"),
+            "result must be 'unverified'",
+        ),
+        (
+            "deps-bad-date",
+            lambda t: t.replace('checked: "2026-06-15"', 'checked: "not-a-date"', 1),
+            "must be a YYYY-MM-DD date",
+        ),
+        (
+            "deps-missing-rationale",
+            lambda t: t.replace("rationale: JWT creation and verification for password-reset tokens; stdlib has no JWT support.", "rationale: "),
+            "'rationale' is required and must be non-empty",
+        ),
+        (
+            "deps-bad-scope",
+            lambda t: t.replace("scope: runtime", "scope: production", 1),
+            "'scope' must be one of",
+        ),
+        (
+            "deps-bad-verdict",
+            lambda t: t.replace("verdict: healthy", "verdict: good", 1),
+            "maintenance.verdict must be one of",
+        ),
+    ]
+
+    for name, mutate, expected in DEPS_INVALID:
+        mutated = mutate(VALID_DEPENDENCIES)
+        if mutated == VALID_DEPENDENCIES:
+            failures.append(f"{name}: mutation did not change the fixture (test bug)")
+            continue
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "dependencies.yaml").write_text(mutated, encoding="utf-8")
             proc = run_validator(d)
             out = proc.stdout + proc.stderr
             if proc.returncode == 0:

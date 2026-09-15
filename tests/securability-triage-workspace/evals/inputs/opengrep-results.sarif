@@ -1,0 +1,146 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "opengrep",
+          "version": "1.102.0",
+          "rules": [
+            {
+              "id": "securable-sql-fstring",
+              "shortDescription": { "text": "SQL query built with f-string using user input" }
+            },
+            {
+              "id": "securable-jwt-decode-unpinned",
+              "shortDescription": { "text": "jwt.decode called without pinning algorithms" }
+            },
+            {
+              "id": "securable-bare-except-pass",
+              "shortDescription": { "text": "Bare except with pass or generic return" }
+            },
+            {
+              "id": "securable-requests-no-timeout",
+              "shortDescription": { "text": "HTTP request without explicit timeout" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "securable-sql-fstring",
+          "level": "error",
+          "message": { "text": "SQL query built with f-string interpolating user-controlled variable 'category'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 32 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "a1b2c3d4" }
+        },
+        {
+          "ruleId": "securable-sql-fstring",
+          "level": "error",
+          "message": { "text": "SQL query built with f-string interpolating user-controlled variable 'item_id'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 39 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "e5f6a7b8" }
+        },
+        {
+          "ruleId": "securable-sql-fstring",
+          "level": "error",
+          "message": { "text": "SQL query built with f-string interpolating user-controlled values" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 54 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "c9d0e1f2" }
+        },
+        {
+          "ruleId": "securable-sql-fstring",
+          "level": "error",
+          "message": { "text": "SQL query built with f-string interpolating user-controlled variables 'start' and 'end'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 86 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "34567890" }
+        },
+        {
+          "ruleId": "securable-sql-fstring",
+          "level": "error",
+          "message": { "text": "SQL query built with f-string interpolating user-controlled variable 'item_id'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 72 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "abcdef01" }
+        },
+        {
+          "ruleId": "securable-jwt-decode-unpinned",
+          "level": "warning",
+          "message": { "text": "jwt.decode called without specifying algorithms parameter" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 26 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "12345678" }
+        },
+        {
+          "ruleId": "securable-bare-except-pass",
+          "level": "warning",
+          "message": { "text": "Bare except clause catches all exceptions including KeyboardInterrupt" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 76 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "fedcba98" }
+        },
+        {
+          "ruleId": "securable-requests-no-timeout",
+          "level": "warning",
+          "message": { "text": "requests.post called without timeout parameter" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_inventory.py" },
+                "region": { "startLine": 67 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "76543210" }
+        }
+      ]
+    }
+  ]
+}

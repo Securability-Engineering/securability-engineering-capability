@@ -1,0 +1,16 @@
+id: positive-trigger-002
+name: Positive Trigger 2
+description: Explicit SSEM section lookup.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Explain SSEM section S4.4.1.2 and its engineering implication."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "SSEM"
+        - "S4.4.1.2"

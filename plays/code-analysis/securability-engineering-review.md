@@ -127,6 +127,10 @@ Use [templates/report.md](../../templates/report.md) as the assembly scaffold.
 
 Per FIASSE v1.1 SA.4, close with the score, the rationale, and a short list of prioritized changes — and state that the score is a directional aid, not an assurance verdict. Where the system is high-impact or the score dropped materially against the baseline, flag that a reviewer should confirm the recommendations before they become development commitments.
 
+### 15. Persist per policy and emit escalations
+
+Persist the report and emit escalations per the skill's policy-awareness step (see [skills/securability-engineering-review/SKILL.md](../../skills/securability-engineering-review/SKILL.md)).
+
 ## Quality Gates
 
 - [ ] Scope, language, exposure, and prior baseline captured before scoring

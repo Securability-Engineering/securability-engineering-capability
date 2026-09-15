@@ -61,6 +61,13 @@ OUTPUT_FILENAMES: dict[str, str] = {
     "prd-securability-enhancement-workspace": "enhanced-prd.md",
     "securability-engineering-workspace": "generated.md",
     "securability-engineering-review-workspace": "report.md",
+    "threat-modeling-workspace": "threat-model.md",
+    "securability-triage-workspace": "triage.md",
+    "securability-remediation-workspace": "remediation.md",
+    "securability-verification-workspace": "verification-report.md",
+    "securability-postmortem-workspace": "postmortem.md",
+    "dependency-stewardship-workspace": "stewardship-report.md",
+    "fiasse-adoption-workspace": "adoption-assessment.md",
 }
 
 # Map a workspace directory name to the path of the LIVE skill (relative to repo root).
@@ -68,6 +75,13 @@ SKILL_PATHS: dict[str, str] = {
     "prd-securability-enhancement-workspace": "skills/prd-securability-enhancement/SKILL.md",
     "securability-engineering-workspace": "skills/securability-engineering/SKILL.md",
     "securability-engineering-review-workspace": "skills/securability-engineering-review/SKILL.md",
+    "threat-modeling-workspace": "skills/threat-modeling/SKILL.md",
+    "securability-triage-workspace": "skills/securability-triage/SKILL.md",
+    "securability-remediation-workspace": "skills/securability-remediation/SKILL.md",
+    "securability-verification-workspace": "skills/securability-verification/SKILL.md",
+    "securability-postmortem-workspace": "skills/securability-postmortem/SKILL.md",
+    "dependency-stewardship-workspace": "skills/dependency-stewardship/SKILL.md",
+    "fiasse-adoption-workspace": "skills/fiasse-adoption/SKILL.md",
 }
 
 

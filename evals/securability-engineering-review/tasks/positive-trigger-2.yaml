@@ -1,0 +1,16 @@
+id: positive-trigger-002
+name: Positive Trigger 2
+description: Explicit SSEM review request.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "Perform a FIASSE SSEM review of this merge request and identify the weakest attributes."
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "SSEM"
+        - "review"

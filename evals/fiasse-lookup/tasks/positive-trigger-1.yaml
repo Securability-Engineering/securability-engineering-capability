@@ -1,0 +1,16 @@
+id: positive-trigger-001
+name: Positive Trigger 1
+description: Natural-language FIASSE reference question.
+tags:
+  - positive-trigger
+inputs:
+  prompt: "What does FIASSE say about the Least Astonishment principle?"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: contains-keywords
+    config:
+      contains:
+        - "FIASSE"
+        - "Astonishment"

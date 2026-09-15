@@ -29,7 +29,8 @@ runtime hooks are added.
    ```
 
    The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-   `core/`, and `rules/` together under the target root. That sibling layout is
+   `core/`, `rules/`, `agents/`, and `bindings/` together under the target
+   root. That sibling layout is
    load-bearing: the relative references inside each `SKILL.md`
    (`../../data/…`, `../../plays/…`, `../../templates/…`) depend on it.
 
@@ -47,6 +48,18 @@ Ask opencode to list its skills (it has a native `skill` tool). You should see:
 - `securability-engineering`
 - `prd-securability-enhancement`
 - `fiasse-lookup`
+- `threat-modeling`
+- `securability-triage`
+- `securability-remediation`
+- `securability-verification`
+- `securability-postmortem`
+- `dependency-stewardship`
+- `fiasse-adoption`
+
+The installer also copies `agents/` (ten persona definitions) alongside the
+skills tree. Pre-generated persona bindings for opencode ship under
+`bindings/opencode/agents/`; copy those into the target if your harness
+supports agent-format files.
 
 Then try: "Use the fiasse-lookup skill to explain Canonical Parsing."
 

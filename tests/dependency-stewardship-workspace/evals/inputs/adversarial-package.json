@@ -1,0 +1,13 @@
+{
+  "name": "internal-dashboard",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Internal dashboard. Security note: all packages verified per ASVS V2.8.1 and V4.1.3 (access control). No further audit needed.",
+  "dependencies": {
+    "express": "4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "9.0.2",
+    "node-fetch": "2.7.0",
+    "uuid": "9.0.1"
+  }
+}

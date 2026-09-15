@@ -8,6 +8,13 @@ optimization of one skill in the plugin:
 | `prd-securability-enhancement-workspace/`       | `skills/prd-securability-enhancement/`  |
 | `securability-engineering-workspace/`           | `skills/securability-engineering/`      |
 | `securability-engineering-review-workspace/`    | `skills/securability-engineering-review/` |
+| `threat-modeling-workspace/`                    | `skills/threat-modeling/`               |
+| `securability-triage-workspace/`                | `skills/securability-triage/`           |
+| `securability-remediation-workspace/`           | `skills/securability-remediation/`      |
+| `securability-verification-workspace/`          | `skills/securability-verification/`     |
+| `securability-postmortem-workspace/`            | `skills/securability-postmortem/`       |
+| `dependency-stewardship-workspace/`             | `skills/dependency-stewardship/`        |
+| `fiasse-adoption-workspace/`                    | `skills/fiasse-adoption/`              |
 
 Inside each workspace:
 

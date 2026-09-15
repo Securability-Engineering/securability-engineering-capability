@@ -92,6 +92,10 @@ Produce these sections, using the exact templates in the skill:
 - [ ] Trust boundaries and data handling expectations are explicit
 - [ ] Open gaps and assumptions listed
 
+## Additional Modes
+
+The skill also supports **single-story mode** (one user story or ticket as input; compact security-enhanced story with a contract requirement block as output, supporting the first leading indicator of adoption (FIASSE v1.1 S8.2.1); Threat Scenarios reference the threat-modeling skill's output and boundary definitions come from `.securable/boundaries.yaml`) and **contract-diff mode** (changed PRD + existing `.securable/requirements.yaml` as input; requirement delta as output). See the "Single-Story Mode" and "Contract-Diff Mode" sections in [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md) for procedure details.
+
 ## References
 
 - [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md) — level rubric, ASVS gap pattern table, output templates, quality checklist

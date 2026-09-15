@@ -1,0 +1,187 @@
+# Securable Engineering Pack — Any AGENTS.md + Agent Skills Harness
+
+This guide covers agents that read [AGENTS.md](https://agents.md) context files
+and discover [Agent Skills](https://agentskills.io)-format skills from `.agents/skills/`.
+Verified examples: **Zed** and **Codex**. **Amp** is included with caveats
+(see [Limitations](#10-limitations-and-unverified-items)). For tools with
+dedicated adapters (Claude Code, Cursor, Devin, opencode, Copilot, Gemini CLI,
+Aider) see the corresponding guide in `docs/platforms/`.
+
+---
+
+## 1. What this pack gives you
+
+| Layer                    | Status                                                     |
+|--------------------------|------------------------------------------------------------|
+| **Kernel (always-on)**   | Manual — append `core/kernel.md` to `AGENTS.md`            |
+| **Skills**               | Native — `.agents/skills/` discovery                       |
+| **Commands / prompts**   | Manual — invoke the skill directly or paste its prompt      |
+| **Personas**             | Generated binding — `bindings/generic/agents/*.md`; paste as system prompt |
+| **Hooks (held checks)**  | Not available — run opengrep with the pack's rules in CI   |
+| **Merge-time report**    | Manual — `scripts/securability_report.sh` with `AGENT_CLI` |
+
+---
+
+## 2. Install
+
+```bash
+git clone --depth 1 \
+  https://github.com/Securability-Engineering/securable-claude-plugin.git \
+  /tmp/securable-claude-plugin
+/tmp/securable-claude-plugin/scripts/install_skills.sh --target .agents
+rm -rf /tmp/securable-claude-plugin
+```
+
+The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
+`core/`, `rules/`, `agents/`, `bindings/`, and `docs/` together under `.agents/`.
+That sibling layout is load-bearing: relative references inside each
+`SKILL.md` depend on it. Pass a different root as `--target` if your tool
+discovers skills elsewhere. To update, re-clone and re-run with `--force`.
+
+---
+
+## 3. Always-on kernel
+
+The securability kernel (`core/kernel.md`, ~300 tokens) provides five rules
+that apply to every interaction. Append it to your project's always-on file:
+
+```bash
+cat .agents/core/kernel.md >> AGENTS.md
+```
+
+**Zed** reads `AGENTS.md` from the project root (plus `.rules`, `CLAUDE.md`,
+`GEMINI.md`, and others). Personal instructions: `~/.config/zed/AGENTS.md`.
+
+**Codex** cascades from global (`~/.codex/AGENTS.md` or `$CODEX_HOME/AGENTS.md`)
+down to cwd, one file per directory. `AGENTS.override.md` takes priority.
+
+For other harnesses, consult your tool's docs for the always-on context path.
+
+---
+
+## 4. Skills
+
+Eleven skills land under `.agents/skills/`: `securability-engineering-review`,
+`securability-engineering`, `prd-securability-enhancement`, `fiasse-lookup`,
+`threat-modeling`, `dependency-stewardship`, `securability-triage`,
+`securability-remediation`, `securability-verification`,
+`securability-postmortem`, `fiasse-adoption`.
+
+**Zed** discovers from `<worktree>/.agents/skills/` (project) and
+`~/.agents/skills/` (global). Flat layout required; `name` and `description`
+frontmatter required — the pack's skills satisfy both. Invoke via the `/`
+menu, `@skill` mention, or autonomous activation.
+
+**Codex** reads `.agents/skills/` from cwd up to the repo root, plus
+`~/.agents/skills/`. Skills activate when the model matches on `description`.
+
+**Verify**: ask the agent to list its skills. You should see at least
+`securability-engineering-review`, `securability-engineering`,
+`prd-securability-enhancement`, and `fiasse-lookup`.
+
+---
+
+## 5. Commands or prompt equivalents
+
+The pack ships twelve Claude Code slash commands in `commands/*.md`
+(`securability-review`, `secure-generate`, `prd-securability-enhance`,
+`fiasse-lookup`, `threat-model`, `dependency-steward`, `securability-triage`,
+`securability-remediate`, `securability-verify`, `securability-postmortem`,
+`fiasse-adoption`, `securable-status`). Each delegates to a skill.
+
+On a generic harness these are not native commands. Instead:
+
+- **Zed**: type `/` and select the skill, or `@securability-engineering-review`.
+- **Codex**: describe the task; the agent activates the matching skill.
+- **Any tool**: ask the agent to "follow the securability-engineering-review skill."
+
+---
+
+## 6. Personas
+
+Ten generated persona bindings ship under `bindings/generic/agents/`:
+
+| Persona | Layer | File |
+|---------|-------|------|
+| Requirements Partner | L1 | `requirements-partner.md` |
+| Boundary Mapper | L1 | `boundary-mapper.md` |
+| Securable Builder | L2 | `securable-builder.md` |
+| Dependency Steward | L2 | `dependency-steward.md` |
+| Merge Steward | L3 | `merge-steward.md` |
+| Triage Analyst | L3 | `triage-analyst.md` |
+| Remediation Engineer | L3 | `remediation-engineer.md` |
+| Verification Engineer | L4 | `verification-engineer.md` |
+| Incident Learner | L5 | `incident-learner.md` |
+| Adoption Coach | Program | `adoption-coach.md` |
+
+Generated by `scripts/build_agents.py` from the canonical `agents/*.md`.
+
+**Zed** does not support user-defined named personas (Agent Profiles control
+tool availability, not system prompts). **Codex** has no standalone persona
+format at the CLI level. **Generic fallback**: paste the persona file into
+your tool's rules/context at the start of a session.
+
+**Example — review group**: paste `bindings/generic/agents/merge-steward.md`,
+then: "Review the current diff using the securability-engineering-review skill."
+
+**Example — build group**: paste `bindings/generic/agents/securable-builder.md`,
+then: "Implement the auth endpoint from .securable/requirements.yaml AUTH-001."
+
+---
+
+## 7. Hooks and held checks
+
+AGENTS.md-only harnesses lack native hook support. The pack's opengrep rules
+(`rules/opengrep/`) detect anti-patterns the skills flag. Run them in CI:
+
+```bash
+# Consumer provisions opengrep — the pack never installs anything.
+opengrep scan --config .agents/rules/opengrep/ --json \
+  | python3 -c "import sys,json
+[print(f'{r[\"path\"]}:{r[\"start\"][\"line\"]}: {r[\"check_id\"]}')
+ for r in json.load(sys.stdin).get('results',[])]"
+```
+
+Claude Code users can opt in to the post-edit hook with
+`SECURABLE_HELD_CHECKS=1` (see `hooks/README.md`).
+
+---
+
+## 8. Merge-time Securability Report
+
+```bash
+AGENT_CLI="your-agent-cli run" \
+  scripts/securability_report.sh --base origin/main --head HEAD
+```
+
+Set `AGENT_CLI` to a non-interactive command reading the prompt from stdin
+(default: `claude -p --output-format text`). No AGENTS.md-only harness has
+been verified to have a non-interactive batch mode. If yours does not, paste
+`bindings/generic/agents/merge-steward.md` into a session and review the diff
+interactively.
+
+---
+
+## 9. Tooling policy reminder
+
+The pack **never installs tooling at runtime**. Skills, kernel, and personas
+use only tools already present. Absent tooling is reported as `Not assessed`.
+Consumers provision their own CI dependencies (opengrep, agent CLIs, runners).
+
+---
+
+## 10. Limitations and unverified items
+
+| Item | Status |
+|------|--------|
+| Amp AGENTS.md reading | Not verified — docs unreachable |
+| Amp skill discovery (`.agents/skills/`) | Not verified |
+| Amp custom agents (Plugin API, TypeScript) | Not verified |
+| Amp subagent spawning | Not verified |
+| Amp `.agents/checks/` directory | Not verified |
+| Codex custom prompts (`~/.codex/prompts/`, deprecated) | Not verified |
+| Codex `config.toml` fallback filenames | Not verified |
+| Codex persona/subagent definitions | Not verified — no first-class format documented |
+| Zed user-defined named personas | Verified absent — Agent Profiles control tools only |
+| Non-interactive batch mode for any AGENTS.md harness | Not verified |
+| Amp `settings.json` tool configuration | Verified (`~/.config/amp/settings.json`) |

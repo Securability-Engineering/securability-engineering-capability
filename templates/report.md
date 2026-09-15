@@ -26,6 +26,38 @@ Scoring conduct is governed by FIASSE v1.1 SA.4: the score is a directional mana
 
 ## Part 1 — SSEM Score Summary
 
+### Machine-Readable Score Block
+
+```yaml
+ssem_score:
+  version: 1
+  date: YYYY-MM-DD
+  scope: <string>
+  commit: <sha or n/a>
+  attributes:            # integer 0-10, or not_assessed, or n_a
+    analyzability: [N]
+    modifiability: [N]
+    testability: [N]
+    observability: [N]
+    confidentiality: [N]
+    accountability: [N]
+    authenticity: [N]
+    availability: [N]
+    integrity: [N]
+    resilience: [N]
+  raw_mean: [X.X]
+  floor: [X.X]
+  overall: [X.X]
+  binding: [raw_mean | floor | none]
+  grade: [Exemplary | Strong | Adequate | Weak | Minimal | Absent]
+  weakest: [attribute name]
+  severity_counts: {critical: [N], high: [N], medium: [N], low: [N], info: [N]}
+  requirements: {verified: [N], implemented: [N], planned: [N], refuted: [N]}
+  escalations: [N]
+```
+
+Attribute scores are **integers** (0–10, `not_assessed`, or `n_a`). Composite math (raw_mean, floor, overall) is one decimal. When more than 2 attributes are `not_assessed`, set `binding: none` and omit raw_mean, floor, overall, grade, and weakest. The `requirements` field reflects `.securable/requirements.yaml` status counts when the contract exists; omit it otherwise. `escalations` counts the design-level findings routed to the threat model.
+
 ### Overall
 
 - **Raw mean** (all assessed attributes): [X.X]
@@ -134,6 +166,16 @@ before they become development commitments (FIASSE v1.1 SA.4). Otherwise omit.]
 ### Reliability — diagnostic mean [X.X]/10 ([Grade])
 
 [Same shape as Maintainability above.]
+
+### Escalations
+
+Design-level findings that belong in the threat model rather than in code-level fixes (FIASSE v1.1 S5.2). For each:
+
+```
+- **[Title]** — Boundary: [boundary id from .securable/boundaries.yaml, or a descriptive name]
+  Question: [one-line question for the threat model — e.g., "What is the intended trust level of the webhook source?"]
+  Route to: threat-modeling
+```
 
 ### Individual Findings
 
@@ -291,3 +333,6 @@ For findings *not* fixed within the iteration cap, list them with severity, attr
 - Sampling discipline is the report's credibility floor. Declare what was inspected; mark the rest `Not assessed` rather than assigning it a number.
 - The overall-score math must be visible: raw mean, floor, and which constraint binds. Pillar means are diagnostics and never feed the overall score.
 - Every expected improvement names its attribute. A bare "+X.X points" is not actionable.
+- Attribute scores in the machine-readable block are **integers** (0–10). Composite math is one decimal. This eliminates false precision that made small run-to-run noise look like real change.
+- The `escalations` count and the Escalations section route design-level findings to the threat model (FIASSE v1.1 S5.2) rather than treating them as code-level fixes.
+- When `.securable/policy.yaml` specifies `mode: gate`, the report states which gate thresholds would trigger — but gating is a policy decision with a required override path, not a framework default (FIASSE v1.1 S5.2.3).

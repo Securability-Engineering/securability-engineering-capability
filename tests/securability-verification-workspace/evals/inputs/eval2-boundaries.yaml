@@ -1,0 +1,11 @@
+# Trust boundary map — adversarial eval fixture
+securable_contract: 1
+system: Payment gateway proxy
+
+boundaries:
+  - id: merchant-api
+    kind: http
+    description: HTTPS API for merchant payment submissions.
+    entry_points: ["POST /payments", "GET /payments/{id}"]
+    data: [card-token, amount, currency, merchant-id]
+    authority: API key verified server-side against the merchant registry.

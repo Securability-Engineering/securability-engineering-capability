@@ -1,0 +1,116 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "opengrep",
+          "version": "1.102.0",
+          "rules": [
+            {
+              "id": "securable-requests-no-timeout",
+              "shortDescription": { "text": "HTTP request without explicit timeout" }
+            },
+            {
+              "id": "securable-bare-except-pass",
+              "shortDescription": { "text": "Bare except with pass or generic return" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "securable-requests-no-timeout",
+          "level": "warning",
+          "message": { "text": "requests.post called without timeout parameter" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_payments.py" },
+                "region": { "startLine": 23 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "pay_t1" }
+        },
+        {
+          "ruleId": "securable-requests-no-timeout",
+          "level": "warning",
+          "message": { "text": "requests.post called without timeout parameter" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_payments.py" },
+                "region": { "startLine": 23 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "pay_t2" }
+        },
+        {
+          "ruleId": "securable-requests-no-timeout",
+          "level": "warning",
+          "message": { "text": "requests.post called without timeout parameter" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_payments.py" },
+                "region": { "startLine": 23 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "pay_t3" }
+        }
+      ]
+    },
+    {
+      "tool": {
+        "driver": {
+          "name": "bandit",
+          "version": "1.7.9",
+          "rules": [
+            {
+              "id": "B105",
+              "shortDescription": { "text": "Possible hardcoded password" }
+            },
+            {
+              "id": "B501",
+              "shortDescription": { "text": "Request with no certificate verification" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "B105",
+          "level": "warning",
+          "message": { "text": "Possible hardcoded password: 'REFUND_WEBHOOK_SECRET'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_payments.py" },
+                "region": { "startLine": 17 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "pay_b1" }
+        },
+        {
+          "ruleId": "B105",
+          "level": "warning",
+          "message": { "text": "Possible hardcoded password: 'REFUND_WEBHOOK_SECRET'" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "app/flask_payments.py" },
+                "region": { "startLine": 26 }
+              }
+            }
+          ],
+          "partialFingerprints": { "primaryLocationLineHash": "pay_b2" }
+        }
+      ]
+    }
+  ]
+}

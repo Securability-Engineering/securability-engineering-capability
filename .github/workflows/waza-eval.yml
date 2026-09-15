@@ -1,0 +1,40 @@
+name: Waza Evals
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Waza
+        run: curl -fsSL https://raw.githubusercontent.com/microsoft/waza/main/install.sh | bash
+
+      - name: Run all Waza eval suites
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/waza-results"
+          for eval_file in evals/*/eval.yaml; do
+            skill_name="$(basename "$(dirname "$eval_file")")"
+            waza run "$eval_file" \
+              --verbose \
+              --output "$RUNNER_TEMP/waza-results/${skill_name}.json"
+          done
+
+      - name: Upload Waza results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waza-evaluation-results
+          path: ${{ runner.temp }}/waza-results
+          if-no-files-found: error

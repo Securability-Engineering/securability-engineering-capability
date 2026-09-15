@@ -27,7 +27,8 @@ Agent-specific adapters exist for Claude Code (`.claude-plugin/`), Cursor
    ```
 
    The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-   `core/`, and `rules/` together under `.agents/`. That sibling layout is
+   `core/`, `rules/`, `agents/`, and `bindings/` together under `.agents/`.
+   That sibling layout is
    load-bearing: the relative references inside each `SKILL.md`
    (`../../data/…`, `../../plays/…`, `../../templates/…`) depend on it.
    If your agent discovers skills from a different root, pass that root as
@@ -53,6 +54,17 @@ Ask the agent to list its skills. You should see:
 - `securability-engineering`
 - `prd-securability-enhancement`
 - `fiasse-lookup`
+- `threat-modeling`
+- `securability-triage`
+- `securability-remediation`
+- `securability-verification`
+- `securability-postmortem`
+- `dependency-stewardship`
+- `fiasse-adoption`
+
+The `agents/` directory contains ten persona definitions; pre-generated persona
+bindings for generic AGENTS.md agents ship under `bindings/generic/agents/`.
+Copy those into your harness's agent directory if it supports persona files.
 
 ## Updating
 

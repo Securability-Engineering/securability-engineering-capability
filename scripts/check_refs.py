@@ -36,6 +36,7 @@ SCAN_TARGETS = [
     "plays",
     "templates",
     "examples",
+    "agents",
 ]
 
 # Scanned for references too (regexes run over raw text, so YAML rule
