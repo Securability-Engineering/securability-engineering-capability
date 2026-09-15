@@ -49,6 +49,17 @@ run bash -n hooks/scripts/session_kernel.sh
 run bash -n hooks/scripts/post_edit_opengrep.sh
 
 echo
+echo "== py_compile scripts/*.py =="
+for pyf in scripts/*.py; do
+  if python3 -m py_compile "$pyf"; then
+    echo "ok $pyf"
+  else
+    echo "^^ FAILED: py_compile $pyf" >&2
+    FAILED=1
+  fi
+done
+
+echo
 echo "== opengrep pack =="
 if bash scripts/test_opengrep_rules.sh; then :; else
   code=$?

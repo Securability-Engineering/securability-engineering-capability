@@ -70,11 +70,20 @@ def main() -> int:
         # per the Claude/Cursor plugin convention — not the manifest's own dir.
         skills = manifest.get("skills")
         if skills is not None:
-            skills_dir = (REPO_ROOT / skills).resolve()
-            if REPO_ROOT not in skills_dir.parents and skills_dir != REPO_ROOT:
-                errors.append(f"{rel}: skills path {skills!r} resolves outside repo")
-            elif not skills_dir.is_dir() or not list(skills_dir.glob("*/SKILL.md")):
-                errors.append(f"{rel}: skills path {skills!r} has no */SKILL.md")
+            # Support both string (directory) and array (individual skill paths) formats
+            if isinstance(skills, list):
+                for skill_path in skills:
+                    skill_dir = (REPO_ROOT / skill_path).resolve()
+                    if REPO_ROOT not in skill_dir.parents and skill_dir != REPO_ROOT:
+                        errors.append(f"{rel}: skills entry {skill_path!r} resolves outside repo")
+                    elif not skill_dir.is_dir() or not (skill_dir / "SKILL.md").is_file():
+                        errors.append(f"{rel}: skills entry {skill_path!r} has no SKILL.md")
+            else:
+                skills_dir = (REPO_ROOT / skills).resolve()
+                if REPO_ROOT not in skills_dir.parents and skills_dir != REPO_ROOT:
+                    errors.append(f"{rel}: skills path {skills!r} resolves outside repo")
+                elif not skills_dir.is_dir() or not list(skills_dir.glob("*/SKILL.md")):
+                    errors.append(f"{rel}: skills path {skills!r} has no */SKILL.md")
 
     marketplace = load(".claude-plugin/marketplace.json", errors)
     if marketplace is not None:

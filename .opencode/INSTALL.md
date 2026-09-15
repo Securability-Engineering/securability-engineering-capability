@@ -47,6 +47,18 @@ Ask opencode to list its skills (it has a native `skill` tool). You should see:
 - `securability-engineering`
 - `prd-securability-enhancement`
 - `fiasse-lookup`
+- `threat-modeling`
+- `securability-triage`
+- `securability-remediation`
+- `securability-verification`
+- `securability-postmortem`
+- `dependency-stewardship`
+- `fiasse-adoption`
+
+The installer also copies `agents/` (ten persona definitions) alongside the
+skills tree. Pre-generated persona bindings for opencode ship under
+`bindings/opencode/agents/`; copy those into the target if your harness
+supports agent-format files.
 
 Then try: "Use the fiasse-lookup skill to explain Canonical Parsing."
 

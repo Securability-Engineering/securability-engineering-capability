@@ -53,6 +53,18 @@ Ask the agent to list its skills. You should see:
 - `securability-engineering`
 - `prd-securability-enhancement`
 - `fiasse-lookup`
+- `threat-modeling`
+- `securability-triage`
+- `securability-remediation`
+- `securability-verification`
+- `securability-postmortem`
+- `dependency-stewardship`
+- `fiasse-adoption`
+
+The installer also copies `agents/` (ten persona definitions) alongside the
+skills tree. Pre-generated persona bindings for generic AGENTS.md agents ship
+under `bindings/generic/agents/`; copy those into your harness's agent
+directory if it supports persona files.
 
 ## Updating
 

@@ -103,37 +103,37 @@ verified) into `bindings/`, with a `--check` drift guard in CI.
 ### Phase 0: Plan and conventions
 - [x] Branch created
 - [x] Plan and checklist written (this file)
-- [ ] Platform formats researched with citations (Claude Code, opencode, Copilot, Cursor, Codex, Gemini CLI, Aider, Devin, Zed, Amp)
-- [ ] House-conventions brief produced for writer agents
+- [x] Platform formats researched with citations (Claude Code, opencode, Copilot, Cursor, Codex, Gemini CLI, Aider, Devin, Zed, Amp)
+- [x] House-conventions brief produced for writer agents
 
 ### Phase 1: Skills and contract
-- [ ] `threat-modeling` skill + `templates/threat-model.md`
-- [ ] `securability-triage` skill + `templates/triage.md`
-- [ ] `securability-remediation` skill
-- [ ] `securability-verification` skill
-- [ ] `securability-postmortem` skill + `templates/postmortem.md`
-- [ ] `dependency-stewardship` skill
-- [ ] `fiasse-adoption` skill
-- [ ] Policy and dependencies schemas, examples, validator extension, tests
-- [ ] `scripts/securable_status.py`
-- [ ] Existing-skill extensions and `templates/report.md` score block
+- [x] `threat-modeling` skill + `templates/threat-model.md`
+- [x] `securability-triage` skill + `templates/triage.md`
+- [x] `securability-remediation` skill
+- [x] `securability-verification` skill
+- [x] `securability-postmortem` skill + `templates/postmortem.md`
+- [x] `dependency-stewardship` skill
+- [x] `fiasse-adoption` skill
+- [x] Policy and dependencies schemas, examples, validator extension, tests
+- [x] `scripts/securable_status.py`
+- [x] Existing-skill extensions and `templates/report.md` score block
 - [ ] Each new skill reviewed by two independent lenses and revised
-- [ ] `python3 scripts/check_refs.py` green
+- [x] `python3 scripts/check_refs.py` green
 
 ### Phase 2: Personas, commands, hooks
-- [ ] Ten canonical `agents/*.md`
+- [x] Ten canonical `agents/*.md`
 - [ ] Each persona adversarially reviewed (never-list vs tool allowlist, skill names exist, FIASSE fidelity) and revised
-- [ ] Eight command dispatchers
-- [ ] `hooks/hooks.json` + scripts (opt-in, tooling-policy compliant)
-- [ ] `scripts/build_agents.py` + generated bindings + `--check`
-- [ ] Kernel line updated; bindings rebuilt
+- [x] Eight command dispatchers
+- [x] `hooks/hooks.json` + scripts (opt-in, tooling-policy compliant)
+- [x] `scripts/build_agents.py` + generated bindings + `--check`
+- [x] Kernel line updated; bindings rebuilt
 
 ### Phase 3: Docs and packaging
-- [ ] `docs/personas.md`
-- [ ] `docs/platforms/*` (one per harness) fact-checked against research
-- [ ] README, AGENTS.md, INSTALL docs, installer, manifests at 2.4.0
-- [ ] `scripts/run_checks.sh` extended; all green
-- [ ] Eval workspaces for new skills
+- [x] `docs/personas.md`
+- [x] `docs/platforms/*` (one per harness) fact-checked against research
+- [x] README, AGENTS.md, INSTALL docs, installer, manifests at 2.4.0
+- [x] `scripts/run_checks.sh` extended; all green
+- [x] Eval workspaces for new skills
 
 ### Phase 4: Whole-diff review loop
 - [ ] Multi-lens adversarial review of the full diff (FIASSE fidelity, reference correctness, tooling policy, platform accuracy, drift, hook-script safety)
@@ -152,3 +152,4 @@ verified) into `bindings/`, with a `--check` drift guard in CI.
 ## 6. Status log
 
 - 2026-09-14: plan written; Phase 0 research started.
+- 2026-09-15: Phase 3 integration — README, AGENTS.md, INSTALL docs, manifests bumped to 2.4.0, run_checks.sh extended, docs/platforms/README.md index created, plan checklist updated.
