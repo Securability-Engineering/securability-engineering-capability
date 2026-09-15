@@ -10,7 +10,7 @@ Look up the FIASSE/SSEM reference material for the specified topic and provide a
 
 > **Path resolution**: every `data/` path in this skill lives at the plugin root — the directory two levels above this SKILL.md file. In a Claude Code plugin install that root is `${CLAUDE_PLUGIN_ROOT}`; in a repo checkout or a copied skills tree, resolve relative to this file (e.g., `../../data/fiasse/S2.1.md`). These paths never refer to the user's project.
 
-Reference `data/fiasse/` sections to find the relevant content. Each section file has YAML frontmatter (including `fiasse_version: 1.1`) with `when_to_use` triggers that help match the query. Ground every answer in the section text — open the file and cite the section number rather than answering from memory.
+Reference `data/fiasse/` sections to find the relevant content. Each section file has YAML frontmatter (including `fiasse_version: 1.1`) with `when_to_use` triggers that help match the query. Ground every answer in the section text — open the file and cite the section number rather than answering from memory. If the resolved file path cannot be found, tell the user the reference data is unavailable rather than answering from memory.
 
 ## SSEM Quick Reference (FIASSE v1.1 — 10 attributes)
 
@@ -47,4 +47,6 @@ Accept a topic in any form — an attribute name ("integrity"), a concept ("trus
 
 1. The definition or principle, in plain language
 2. The section citation (e.g., FIASSE v1.1 S4.4.1.2)
-3. One concrete engineering implication for the user's current context, when known
+3. One concrete engineering implication, tailored to the user's project context if explicitly stated in the conversation; otherwise, give a general implication and omit context-specific claims
+
+If a query matches no section, tell the user the topic isn't covered in FIASSE/SSEM v1.1. If it matches multiple sections, list the candidates and ask the user to clarify, or address the most likely one and note the alternatives.
