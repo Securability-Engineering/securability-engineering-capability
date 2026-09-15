@@ -66,7 +66,7 @@ Each test family maps to a FIASSE principle. Name the principle and the criterio
 
 #### Test Generation Rules
 
-1. One test file per boundary or per feature -- named `test_verify_<boundary_id>.py` (or the framework's equivalent).
+1. Use one test file per boundary, named `test_verify_<boundary_id>.py` (or the framework's equivalent). If a boundary has more than 5 features, split into per-feature files named `test_verify_<boundary_id>_<feature_id>.py`.
 2. Every test function name includes the criterion id: `test_F03_R2_enumeration_parity`.
 3. Every test docstring cites the FIASSE principle and the ASVS reference.
 4. Tests assert observable behavior (HTTP status, response shape, log output, timing), never implementation internals.
@@ -74,7 +74,7 @@ Each test family maps to a FIASSE principle. Name the principle and the criterio
 
 #### Execution
 
-Run the tests if the project's test runner is present. Report results verbatim -- do not suppress failures or edit output. A test that fails against an `implemented` claim is a **refuted claim**: report it as a finding using the shape from `templates/finding.md`, leave `status: implemented`, and never downgrade silently (per contract lifecycle rules in `docs/securable-contract.md`).
+Run the tests if the project's test runner is present. Report results verbatim -- do not suppress failures or edit output. A test that fails against an `implemented` claim is a **refuted claim**: report it as a finding using the shape from `templates/finding.md`, leave `status: implemented`, and never downgrade silently (per contract lifecycle rules in `docs/securable-contract.md`). If the test runner crashes or times out before completing, report this as an unrunnable/incomplete result distinct from a failure, and leave affected requirement statuses unchanged.
 
 ### Mode B -- Deployment Configuration Review
 
@@ -92,14 +92,14 @@ Emit each finding using the shape from `templates/finding.md`. Cite only ASVS 5.
 
 ### Mode C -- Release Readiness Posture
 
-Given a range (e.g., `v1.2.0..HEAD`):
+Given a range (e.g., `v1.2.0..HEAD`), work through this checklist. Every step's output is merged additively into one Securability Posture section; no step overrides another, they accumulate findings and gaps side by side.
 
 1. Identify changed files in the range using `git diff --name-only`.
 2. Cross-reference changed files against boundary entry points in `.securable/boundaries.yaml` to find touched boundaries.
 3. List requirements whose features reference touched boundaries and whose status is not `verified`.
-4. If `.securable/policy.yaml` specifies a `report_dir`, check for persisted reports with CRITICAL or HIGH findings.
-5. Read `.securable/dependencies.yaml` when present: flag dependencies past their `next_review` date or with `audit.result: unverified`.
-6. When `scripts/securable_status.py` exists, run it with `--changed-files` and incorporate its output.
+4. If `.securable/policy.yaml` is present and specifies a `report_dir`, check for persisted reports with CRITICAL or HIGH findings. If `policy.yaml` is absent, skip this step and note in the report: "policy.yaml not configured."
+5. If `.securable/dependencies.yaml` is present, flag dependencies past their `next_review` date or with `audit.result: unverified`. If absent, skip this step and note: "dependencies.yaml not present."
+6. If `scripts/securable_status.py` exists, run it with `--changed-files` and add its output as its own subsection labeled with its source. If its output conflicts with steps 1-5 (e.g., a different status for the same requirement), report both findings side by side, label each with its source, and do not silently resolve the conflict. If the script is absent, skip this step and note: "securable_status.py not present."
 
 Emit a **Securability Posture** section suitable for release notes. This section reports direction and gaps, never pass/fail -- per FIASSE v1.1 S5.2.5: "What the organization manages is posture over time, not the pass rate of individual merges."
 
@@ -116,7 +116,7 @@ After any contract modification, validate with `scripts/validate_securable.py --
 
 ## Procedure
 
-1. **Read the contract and detect frameworks.** Load `.securable/requirements.yaml`, `.securable/boundaries.yaml`, and optionally `policy.yaml` and `dependencies.yaml`. Detect the project's test framework by examining existing test files, config (pytest.ini, jest.config, Cargo.toml, build.gradle), and lockfiles.
+1. **Read the contract and detect frameworks.** Load `.securable/requirements.yaml`, `.securable/boundaries.yaml`, and optionally `policy.yaml` and `dependencies.yaml`. If `requirements.yaml` or `boundaries.yaml` fails schema validation (`schema/securable/*.schema.json`), report the validation errors and halt before generating tests or modifying status. Detect the project's test framework by examining existing test files, config (pytest.ini, jest.config, Cargo.toml, build.gradle), and lockfiles.
 2. **Select mode(s).** Infer from inputs or ask the user. Multiple modes may run in one invocation.
 3. **Generate tests (Mode A).** One file per boundary or feature under the project's test directory. Follow the test families table and generation rules above.
 4. **Execute tests (Mode A).** Run using the detected framework. Report results verbatim.

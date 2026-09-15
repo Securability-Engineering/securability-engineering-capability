@@ -53,7 +53,7 @@ Never fix on a rumor. A finding without reproducible evidence is not actionable 
 
 Identify the anti-pattern shape from the generation skill's Anti-Pattern Tag Reference at `skills/securability-engineering/SKILL.md` and its correct shape. Reference that table by relative path; do not restate it here.
 
-- If the same root cause has **N instances in scope**, fix them together as one patch (systemic fix). A systemic finding gets one convention, helper, or boundary — not N individual edits. Supplying a list of local edits against a systemic cause echoes the Shoveling Left phenomenon (FIASSE v1.1 S6.2) — impractical remediation left to the developer to systematize.
+- If the same root cause appears in **2 or more locations in scope**, treat it as systemic and fix them together as one patch: one convention, helper, or boundary — not N individual edits. Supplying a list of local edits against a systemic cause echoes the Shoveling Left phenomenon (FIASSE v1.1 S6.2) — impractical remediation left to the developer to systematize.
 - If instances exist **outside scope**, list them as **residuals** in the PR body. Do not widen the scope.
 
 ### Step 3 — Minimal, astonishment-free change
@@ -86,10 +86,11 @@ Never add suppression comments, `# noqa`, `@SuppressWarnings`, `skip`, quarantin
 
 ### Step 6 — Contract update
 
-Read `.securable/requirements.yaml` if present.
+Read `.securable/requirements.yaml` if present, then branch on which case applies:
 
-- If the patch satisfies a `planned` requirement's acceptance criteria, flip `status: planned` to `status: implemented`. This is a claim, not evidence — verification belongs to a later review or CI step (FIASSE v1.1 S5.2). **Never set `status: verified`**; that belongs to `securability-verification` or the securability report, and requires `evidence`.
-- If the finding had **no matching requirement**, note the gap in the PR body for the requirements owner, referencing `prd-securability-enhancement` as the skill that can add it.
+1. **A matching requirement exists and the patch satisfies its acceptance criteria**: flip `status: planned` to `status: implemented`. This is a claim, not evidence — verification belongs to a later review or CI step (FIASSE v1.1 S5.2). **Never set `status: verified`**; that belongs to `securability-verification` or the securability report, and requires `evidence`.
+2. **A matching requirement exists but the patch does not fully satisfy its acceptance criteria**: leave `status: planned` unchanged and note in the PR body which criteria remain open.
+3. **No matching requirement exists**: leave the file untouched and note the gap in the PR body for the requirements owner, referencing `prd-securability-enhancement` as the skill that can add it.
 
 ### Step 7 — Produce the review-ready PR body section
 
@@ -281,7 +282,7 @@ $ opengrep — no findings in changed file
 Before emitting the patch and PR body, confirm:
 
 - [ ] Finding confirmed at file:line — evidence matches the current code
-- [ ] One root cause per patch — not multiple unrelated findings bundled together
+- [ ] One root cause per patch — not multiple unrelated findings bundled together. If a single finding actually describes multiple unrelated anti-patterns, ask the user to split it into separate findings before proceeding, or produce separate patches for each.
 - [ ] No scope widening — residuals listed, not fixed
 - [ ] Test fails before / passes after, or explicitly marked "not executed"
 - [ ] No suppression comments, skips, quarantines, or rule exclusions added
@@ -306,7 +307,7 @@ Before emitting the patch and PR body, confirm:
 - Confirm before fixing: a finding that cannot be reproduced at the cited location is not actionable.
 - One patch, one root cause: if two findings share a root cause, fix them together; if they do not, make two patches.
 - When the project has no test runner, provide the test and say it was not executed — never claim verification that did not happen.
-- When a fix would change public behavior for valid inputs, discuss with the user before proceeding — that is a design decision, not a remediation.
+- When a fix would change public behavior for valid inputs, discuss with the user before proceeding — that is a design decision, not a remediation. If discussing with the user is not possible in this context, stop and return: `"cannot remediate without behavior change — requires user decision on {specific trade-off}"`.
 
 ## FIASSE & OWASP References
 
