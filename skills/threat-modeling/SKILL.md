@@ -42,7 +42,7 @@ A PRD, design doc, ADR, or architecture description. Also the entry point for de
 Discover boundaries from the codebase by searching for entry points. Prefer grep/glob over guessing. Search for: HTTP route decorators/handlers, RPC service definitions, queue consumers, CLI parsers, environment reads, file reads of external paths, webhook receivers, cron/scheduled jobs, DB rows written by other systems. Cite `file:line` for each discovered entry point.
 
 ### Escalation mode
-A merge review or triage flagged a design-level concern (S5.2: "Findings that reveal design-level concerns should be escalated into the formal threat model"). Input is the finding plus enough context to locate the affected boundary. Add or update the affected boundary and scenarios.
+A merge review or triage flagged a design-level concern (S5.2: "Findings that reveal design-level concerns should be escalated into the formal threat model"). Input is the finding plus enough context to locate the affected boundary. Add or update the affected boundary and scenarios. If the escalated finding references a boundary not yet present in boundaries.yaml, create it following Step 2's shape, citing the finding as the source.
 
 For all modes, ask only for what is missing from:
 
@@ -80,7 +80,7 @@ For each boundary, apply the Four Question Framework (S4.2.1):
 
 1. **What are we building?** — The capability this boundary supports.
 2. **What can go wrong?** — Use STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) as a structural checklist (S4.2.2). Phrase each scenario as a failure of an SSEM attribute, never as an attack recipe (S2.5, S6.2.2).
-3. **What are we going to do about it?** — First look for an inherent architectural or logical solution expressed as a Trustworthiness (S3.2.2) or Reliability (S3.2.3) attribute (S4.2.2: "Considering the SSEM attributes, particularly Trustworthiness and Reliability, can lead to existing architectural or logical solutions that address a threat more holistically"). Only when no inherent property addresses it, record a requirement gap: "that recognition defines a requirement" (S4.2.2).
+3. **What are we going to do about it?** — Work through this decision checklist in order (S4.2.2: "Considering the SSEM attributes, particularly Trustworthiness and Reliability, can lead to existing architectural or logical solutions that address a threat more holistically"): (a) Check if a Trustworthiness attribute (S3.2.2) resolves it — if yes, mark addressed by design. (b) Check if a Reliability attribute (S3.2.3) resolves it — if yes, mark addressed by design. (c) If neither applies, record a requirement gap: "that recognition defines a requirement" (S4.2.2).
 4. **Did we do a good job?** — Answered by review, not by this skill. Record the status for later verification.
 
 ### Step 4 — Build the threat scenario table
@@ -112,13 +112,13 @@ This skill creates requirements only with `status: planned`. It never sets `impl
 
 ### Step 6 — Write or update `.securable/boundaries.yaml`
 
-Write the boundary map into the user's project at `.securable/boundaries.yaml` (ask before creating the directory if the project layout is unclear). Validate with:
+Write the boundary map into the user's project at `.securable/boundaries.yaml`. Ask before creating the directory unless a `.securable/` directory or similar convention already exists in the project root. Validate with:
 
 ```bash
 python3 scripts/validate_securable.py --dir .securable
 ```
 
-Report the validation result verbatim. If the validator is unavailable in the consuming project, state that the boundary map was not machine-validated. Do not install new tools uninvited; where such tooling is absent, that absence is itself evidence for Testability and Observability.
+Report the validation result verbatim. If the validator is unavailable in the consuming project, state that the boundary map was not machine-validated. If the validator runs but reports errors, report the validation errors verbatim and do not claim the boundary map is valid. Do not install new tools uninvited; where such tooling is absent, that absence is itself evidence for Testability and Observability.
 
 ### Step 7 — Escalations and open questions
 
