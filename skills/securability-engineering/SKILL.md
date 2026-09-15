@@ -1,6 +1,6 @@
 ---
 name: securability-engineering
-description: Generate, scaffold, or refactor code so it embodies FIASSE v1.1 SSEM qualities by default — 10 attributes, Transparency and Least-Astonishment principles, ASVS-aligned controls, defensive boundary handling. Trigger on "secure/securable/FIASSE-compliant code", "harden", "secure-by-default", "audit-ready", or security-sensitive components (auth, file upload, password reset, input validation, API endpoints, queries) — even when those words are not explicit. For requirements use prd-securability-enhancement; for review use securability-engineering-review. The full PRD→generate→review→enhance loop is opt-in via "--full-loop" or "end-to-end securable".
+description: Generate, scaffold, or refactor code so it embodies FIASSE v1.1 SSEM qualities by default — 10 attributes, Transparency and Least-Astonishment principles, ASVS-aligned controls, defensive boundary handling. Trigger on "secure/securable/FIASSE-compliant code", "harden", "secure-by-default", "audit-ready", or security-sensitive components (auth, file upload, password reset, input validation, API endpoints, queries) — even when those words are not explicit. If it is unclear whether a request involves a trust boundary or sensitive data, default to applying the Foundational Constraints and note the assumption in Securability Notes rather than skipping them. For requirements use prd-securability-enhancement; for review use securability-engineering-review. The full PRD→generate→review→enhance loop is opt-in via "--full-loop" or "end-to-end securable".
 license: CC-BY-4.0
 ---
 
@@ -46,7 +46,7 @@ When Full Loop Mode is active, follow [plays/code-generation/securable-generatio
 
 ## Foundational Constraints
 
-Before generating any code, apply these FIASSE v1.1 principles:
+Before generating any code, apply these FIASSE v1.1 principles. If the user explicitly requests a pattern that conflicts with a Foundational Constraint (e.g., disabling input validation), implement the safer default anyway and flag the conflict explicitly in Securability Notes trade-offs, rather than silently complying or silently overriding.
 
 1. **The Securable Paradigm** (FIASSE v1.1 S2.1) — There is no static "secure" state. Generate code with qualities that let it adapt to evolving threats, not code that is merely "secure right now".
 2. **Resiliently Add Computing Value** (FIASSE v1.1 S2.2) — Code must withstand change, stress, and attack while delivering business value. Security qualities are engineering requirements, not afterthoughts.
@@ -108,16 +108,29 @@ Boundary input is hostile until proven otherwise — and "hostile" includes *wel
 - **JSON and structured payloads** — duplicate keys, depth bombs, integer overflow, type confusion (`"123"` vs `123`).
 - **Tokens and credentials** — leading/trailing whitespace, base64url vs base64, padding variants, leading `Bearer ` already stripped or not.
 
-Don't enumerate all of these in code — pick the ones that *matter for this boundary* and handle them deliberately. The default for any RFC-defined token is **"follow the RFC, don't reject the spec-compliant variant just because your prototype only saw one shape."**
+Don't enumerate all of these in code — select variations based on the input's declared type and source: for HTTP headers apply case-insensitivity and whitespace trimming; for URLs and query strings apply percent-encoding normalization and traversal checks; for filenames and paths apply traversal and Unicode normalization checks; for numeric/boolean inputs apply explicit format constraints; for content types apply case-insensitivity and declared-vs-sniffed checks; for JSON payloads apply depth/duplicate-key limits; for tokens and credentials apply whitespace/encoding normalization. Document the selection rationale in Securability Notes. The default for any RFC-defined token is **"follow the RFC, don't reject the spec-compliant variant just because your prototype only saw one shape."**
 
 ## Steps (Default Mode)
 
-0. **Honor the contract, if present** — If the project contains `.securable/requirements.yaml`, it is the authoritative requirements source for the features it covers: read the matching feature's requirements and acceptance criteria before generating, and design to satisfy them. Read `.securable/boundaries.yaml` (when present) as the trust-boundary map instead of rediscovering boundaries. After generating, flip each satisfied requirement's `status: planned → implemented` in the contract file and list the flipped IDs in the Securability Notes. Generated code may flip `planned → implemented` only — never `implemented → verified` and never any other transition. The `verified` flip belongs to review or CI, backed by evidence. If the generated code cannot satisfy a covered requirement, say so explicitly in the trade-offs; do not silently drop it.
+If time or context is limited, complete the **Core Steps** in full before spending any effort on **Extended Steps** — the core steps are what make the code securable; the extended steps make the surrounding process auditable.
+
+### Core Steps (mandatory, always complete first)
+
 1. **Identify Context** — Language, framework, system type, data sensitivity, exposure level, trust boundaries, feature category.
 2. **Map Feature Requirements to ASVS** — Use `data/asvs/README.md` and the relevant `data/asvs/V*.md` chapters to identify the security requirements applying to the feature being generated.
 3. **Apply SSEM Constraints** — Enforce the attribute rules in the tables above. Consult `data/fiasse/S3.2.1.md`–`S3.2.3.md` for umbrella definitions.
 4. **Handle Trust Boundaries** — Identify where generated code crosses trust boundaries. Apply FIASSE v1.1 S4.3 (Boundary Control) and S4.4 (Resilient Coding).
-5. **Select Dependencies Deliberately** (FIASSE v1.1 S4.5, S4.6):
+5. **Generate Code** — Produce the code with all SSEM constraints applied. Code should be:
+   - Small, single-purpose functions with clear names (Analyzability)
+   - Loosely coupled with injectable dependencies (Modifiability, Testability)
+   - Defensive at trust boundaries, flexible inside (Integrity, Resilience)
+   - Observable via structured logging and audit trails (Observability, Accountability)
+6. **Self-Check** — Verify against the Generation Checklist below before returning.
+
+### Extended Steps (complete after the core steps, when time and context allow)
+
+- **Honor the contract, if present** — If the project contains `.securable/requirements.yaml`, it is the authoritative requirements source for the features it covers: read the matching feature's requirements and acceptance criteria before generating, and design to satisfy them. Read `.securable/boundaries.yaml` (when present) as the trust-boundary map instead of rediscovering boundaries. After generating, flip each satisfied requirement's `status: planned → implemented` in the contract file and list the flipped IDs in the Securability Notes. Generated code may flip `planned → implemented` only — never `implemented → verified` and never any other transition. The `verified` flip belongs to review or CI, backed by evidence. If the generated code cannot satisfy a covered requirement, say so explicitly in the trade-offs; do not silently drop it. If `.securable/requirements.yaml` or `.securable/boundaries.yaml` exist but cannot be parsed, state this explicitly in Securability Notes and fall back to Default Mode context discovery rather than failing silently.
+- **Select Dependencies Deliberately** (FIASSE v1.1 S4.5, S4.6):
    - Latest stable versions unless a compatibility constraint is known
    - Low known CVE/CWE exposure — when a dependency audit tool is present, run it and cite the result; when absent, state that CVE exposure is unverified rather than asserting it is low
    - Mature, actively maintained projects
@@ -125,15 +138,9 @@ Don't enumerate all of these in code — pick the ones that *matter for this bou
    - Pin versions; include lockfile guidance
    - Treat the dependency as an ongoing relationship (Stewardship)
    - When adding or updating a dependency, run the `dependency-stewardship` skill to evaluate maintenance signals, trustworthiness, and update cadence, and record the result in `.securable/dependencies.yaml`
-6. **Instrument Transparency & Observability** — Add structured logging at security-sensitive points (FIASSE v1.1 S2.6). Include audit-trail hooks for auth/authz events. Build observability into the code itself (FIASSE v1.1 S3.2.1.4).
-7. **Generate Code** — Produce the code with all SSEM constraints applied. Code should be:
-   - Small, single-purpose functions with clear names (Analyzability)
-   - Loosely coupled with injectable dependencies (Modifiability, Testability)
-   - Defensive at trust boundaries, flexible inside (Integrity, Resilience)
-   - Observable via structured logging and audit trails (Observability, Accountability)
-8. **Self-Check** — Verify against the Generation Checklist below before returning.
-9. **Scaffold acceptance-criterion tests** — For each acceptance criterion in `.securable/requirements.yaml` that the change claims to satisfy, scaffold a test named after the criterion id (e.g., `test_F03_R2_reset_token_single_use`). The test encodes the criterion's pass/fail condition. Hand execution-based verification to the `securability-verification` skill — do not assert pass here; the scaffold is the deliverable.
-10. **Verify with real tools when available** — a checklist pass is a claim; a tool run is evidence. If the project already has a formatter, linter, typechecker, or test runner, run it on the generated code and fix what it finds before returning. If a security scanner is present (opengrep, bandit, gosec, eslint security rules, `npm audit` / `pip-audit` / `osv-scanner` for the dependency step), run that too and treat its findings as review input. When no tooling exists, say so in the Securability Notes trade-offs instead of implying verification happened — and do not install new tools uninvited.
+- **Instrument Transparency & Observability** — Add structured logging at security-sensitive points (FIASSE v1.1 S2.6). Include audit-trail hooks for auth/authz events. Build observability into the code itself (FIASSE v1.1 S3.2.1.4).
+- **Scaffold acceptance-criterion tests** — For each acceptance criterion in `.securable/requirements.yaml` that the change claims to satisfy, scaffold a test named after the criterion id (e.g., `test_F03_R2_reset_token_single_use`). The test encodes the criterion's pass/fail condition. Hand execution-based verification to the `securability-verification` skill — do not assert pass here; the scaffold is the deliverable.
+- **Verify with real tools when available** — a checklist pass is a claim; a tool run is evidence. If the project already has a formatter, linter, typechecker, or test runner, run it on the generated code and fix what it finds before returning. If a security scanner is present (opengrep, bandit, gosec, eslint security rules, `npm audit` / `pip-audit` / `osv-scanner` for the dependency step), run that too and treat its findings as review input. When no tooling exists, say so in the Securability Notes trade-offs instead of implying verification happened — and do not install new tools uninvited.
 
 ## Output Format
 

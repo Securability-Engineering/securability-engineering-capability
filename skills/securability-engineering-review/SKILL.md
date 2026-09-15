@@ -34,7 +34,7 @@ Trigger this skill when the user asks to:
 
 Adjacent phrasings: "rate this code for security", "is this audit-ready?", "what's the security health of X?", "how securable is this?", "do a sec-engineering review", "give me a posture report".
 
-When the request is phrased as an assurance question ("is this audit-ready?", "are we compliant?"), still run the review — but answer in posture terms and say plainly that an SSEM score is not an assurance verdict.
+When the request is phrased as an assurance question ("is this audit-ready?", "are we compliant?"), still run the review — but answer in posture terms and say plainly that an SSEM score is not an assurance verdict. If the user insists on a binary pass/fail verdict after this explanation, reiterate the framing once more and decline to produce a compliance verdict.
 
 ## Scoring Framework
 
@@ -55,9 +55,20 @@ Every attribute contributes **1/10** of the overall score. This is what "no SSEM
 ### Computing the Overall Score
 
 ```
-raw mean   = mean of all assessed attribute scores
-floor      = lowest assessed attribute score + 3.0
-overall    = min(raw mean, floor)
+1. Filter attributes:
+   - Exclude all 'Not assessed' and 'N/A' attributes from numeric calculations.
+   - Count 'Not assessed' attributes.
+
+2. Check threshold:
+   - If count('Not assessed') > 2:
+       overall = null (emit no overall score; report attribute and pillar details only)
+   - Else:
+       assessed_scores = numeric scores of all assessed attributes
+       raw_mean        = mean(assessed_scores)
+       floor           = min(assessed_scores) + 3.0
+       overall         = min(raw_mean, floor)
+       binding         = "floor" if floor < raw_mean else "raw_mean"
+       weakest         = attribute with min(assessed_scores)
 ```
 
 Report all four of: **raw mean**, **floor**, **which of the two is binding**, and **the weakest attribute by name**.
@@ -155,9 +166,9 @@ If the repository or input is incomplete, ask for these before scoring:
 
 If essential context is missing, **mark the affected attributes `Not assessed` and state the limitation explicitly**. Do not invent coverage, architecture, or operational controls.
 
-## Triage and Sampling Strategy (for codebases > a few thousand LoC)
+## Triage and Sampling Strategy (for codebases over 5,000 lines of code)
 
-Full read-through is impossible at scale. Sample deliberately and **declare what was sampled**. The report's credibility rests on the sampling discipline, not on claimed totality.
+Full read-through is impossible at scale for codebases over 5,000 lines of code. Sample deliberately and **declare what was sampled**. The report's credibility rests on the sampling discipline, not on claimed totality.
 
 Inspection priority order:
 
@@ -390,6 +401,8 @@ If the project contains `.securable/policy.yaml`, read it before scoring. Two fi
 
 - **`mode`** — `advisory` (default) or `gate`. The report is always informational. When mode is `gate`, the report additionally states which declared gate thresholds would trigger (e.g., "overall < 5.0", "any CRITICAL finding") — but the skill never blocks a merge or exits non-zero. Gating is a CI/policy decision, not a reviewer decision (FIASSE v1.1 S5.2.3).
 - **`report_dir`** — when the user asks to persist the report, write it to `<report_dir>/<YYYY-MM-DD>-<scope>.md`. Do not persist unless asked.
+
+If `policy.yaml` or `requirements.yaml` is malformed or unreadable, note this explicitly in the report and proceed with default advisory mode.
 
 ## Scanner Output Routing
 
