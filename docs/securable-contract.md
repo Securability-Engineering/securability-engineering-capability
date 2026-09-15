@@ -27,11 +27,15 @@ present in the same directory.
 
 ```
 planned ──────────► implemented ──────────► verified
-  PRD skill           generation             review skill /
-  (or a human)        (any harness)          securability report / CI
+  PRD / threat-model    generation             review skill /
+  / postmortem skills   (any harness)          securability report / CI
+  (or a human)
 ```
 
-- **`planned`** — written by `prd-securability-enhancement` (Step 7) or by hand.
+- **`planned`** — written by `prd-securability-enhancement` (Step 7),
+  `threat-modeling` (requirement gaps from boundary analysis),
+  `securability-postmortem` (corrective requirements from incident lessons),
+  or by hand.
   Every requirement carries at least one behaviorally testable acceptance
   criterion; an entry without one is a control citation, not a requirement
   (S6.1.1), and the validator's schema pressure exists to keep that distinction.

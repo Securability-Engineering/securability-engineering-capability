@@ -122,7 +122,42 @@ def tool_mapping_notes(tool_map: dict[str, str],
     for target, sources in reverse.items():
         if len(sources) > 1:
             notes.append(f"{'+'.join(sources)} → {target}")
+    # Flag Write→edit escalation when Edit is not in the source tools.
+    # The target harness cannot distinguish create-only from edit; the
+    # constraint is promised by the prompt, not held by the harness.
+    if "Write" in source_tools and "Edit" not in source_tools:
+        mapped = tool_map.get("Write")
+        if mapped and mapped == tool_map.get("Edit"):
+            notes.append(
+                f"Write → {mapped} (create-only intent; platform"
+                f" cannot enforce Write-vs-Edit distinction)"
+            )
     return notes
+
+
+def write_only_escalation(tool_map: dict[str, str],
+                          source_tools: list[str]) -> bool:
+    """True when Write maps to the same target as Edit but Edit is absent.
+
+    When this returns True the generated binding grants broader capability
+    than the canonical definition intends: the persona should create new
+    report files, not modify existing ones.  Renderers inject a behavioral
+    constraint so the agent knows the restriction.
+    """
+    if "Write" not in source_tools or "Edit" in source_tools:
+        return False
+    mapped = tool_map.get("Write")
+    return mapped is not None and mapped == tool_map.get("Edit")
+
+
+# The constraint line injected into the prompt body when
+# write_only_escalation is True.
+_WRITE_ONLY_CONSTRAINT = (
+    "\n> **Platform constraint — create only, never edit.** This platform"
+    " maps Write to the same tool as Edit. The canonical tool allowlist"
+    " grants Write but not Edit: use the edit capability only to create"
+    " new report files, never to modify existing files.\n"
+)
 
 
 # ── Renderers ──────────────────────────────────────────────────────────────
@@ -156,9 +191,13 @@ def render_opencode(agent: dict) -> str:
         note_comment = ("<!-- Tool mapping: "
                         + "; ".join(notes) + " -->\n")
 
+    constraint = ""
+    if write_only_escalation(OPENCODE_PERM, agent["tools"]):
+        constraint = _WRITE_ONLY_CONSTRAINT + "\n"
+
     # Frontmatter must be the first bytes of the file for the harness to parse
     # it; the generated header goes right after the closing delimiter.
-    return f"---\n{fm_str}---\n{header}{note_comment}\n{body}"
+    return f"---\n{fm_str}---\n{header}{note_comment}\n{constraint}{body}"
 
 
 def render_copilot(agent: dict) -> str:
@@ -184,7 +223,11 @@ def render_copilot(agent: dict) -> str:
     path_note = ("<!-- ${CLAUDE_PLUGIN_ROOT} paths require the plugin tree"
                  " to be present in the repository -->\n")
 
-    return f"---\n{fm_str}---\n{header}{note_comment}{path_note}\n{agent['body']}"
+    constraint = ""
+    if write_only_escalation(COPILOT_TOOLS, agent["tools"]):
+        constraint = _WRITE_ONLY_CONSTRAINT + "\n"
+
+    return f"---\n{fm_str}---\n{header}{note_comment}{path_note}\n{constraint}{agent['body']}"
 
 
 def render_cursor(agent: dict) -> str:
@@ -210,7 +253,11 @@ def render_cursor(agent: dict) -> str:
     path_note = ("<!-- ${CLAUDE_PLUGIN_ROOT} paths require the plugin tree"
                  " to be present in the repository -->\n")
 
-    return f"---\n{fm_str}---\n{header}{note_comment}{path_note}\n{agent['body']}"
+    constraint = ""
+    if write_only_escalation(CURSOR_TOOLS, agent["tools"]):
+        constraint = _WRITE_ONLY_CONSTRAINT + "\n"
+
+    return f"---\n{fm_str}---\n{header}{note_comment}{path_note}\n{constraint}{agent['body']}"
 
 
 def render_generic(agent: dict) -> str:

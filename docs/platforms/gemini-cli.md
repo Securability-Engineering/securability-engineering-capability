@@ -29,7 +29,7 @@ Platform guide for the Securable Engineering skill pack on [Gemini CLI](https://
    ```
 
    The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-   `core/`, `rules/`, `agents/`, and `bindings/` together. The sibling layout
+   `core/`, `rules/`, `agents/`, `bindings/`, and `docs/` together. The sibling layout
    is load-bearing: relative references inside each `SKILL.md` depend on it.
 
 3. Copy the always-on kernel binding into your project:

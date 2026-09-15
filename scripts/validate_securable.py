@@ -87,7 +87,7 @@ def load_yaml(path: Path, rep: Report):
     try:
         with path.open(encoding="utf-8") as f:
             data = yaml.safe_load(f)
-    except yaml.YAMLError as e:
+    except (yaml.YAMLError, UnicodeDecodeError) as e:
         rep.error(f"{path}: not parseable YAML: {e}")
         return None
     if not isinstance(data, dict):

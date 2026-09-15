@@ -117,12 +117,12 @@ verified) into `bindings/`, with a `--check` drift guard in CI.
 - [x] Policy and dependencies schemas, examples, validator extension, tests
 - [x] `scripts/securable_status.py`
 - [x] Existing-skill extensions and `templates/report.md` score block
-- [ ] Each new skill reviewed by two independent lenses and revised
+- [x] Each new skill reviewed by two independent lenses and revised
 - [x] `python3 scripts/check_refs.py` green
 
 ### Phase 2: Personas, commands, hooks
 - [x] Ten canonical `agents/*.md`
-- [ ] Each persona adversarially reviewed (never-list vs tool allowlist, skill names exist, FIASSE fidelity) and revised
+- [x] Each persona adversarially reviewed (never-list vs tool allowlist, skill names exist, FIASSE fidelity) and revised
 - [x] Eight command dispatchers
 - [x] `hooks/hooks.json` + scripts (opt-in, tooling-policy compliant)
 - [x] `scripts/build_agents.py` + generated bindings + `--check`
@@ -136,10 +136,10 @@ verified) into `bindings/`, with a `--check` drift guard in CI.
 - [x] Eval workspaces for new skills
 
 ### Phase 4: Whole-diff review loop
-- [ ] Multi-lens adversarial review of the full diff (FIASSE fidelity, reference correctness, tooling policy, platform accuracy, drift, hook-script safety)
-- [ ] Findings fixed; loop repeated until a round returns nothing new
-- [ ] `scripts/run_checks.sh` green on the final tree
-- [ ] Committed, pushed, draft PR opened
+- [x] Multi-lens adversarial review of the full diff (FIASSE fidelity, reference correctness, tooling policy, platform accuracy, drift, hook-script safety)
+- [x] Findings fixed; loop repeated until a round returns nothing new
+- [x] `scripts/run_checks.sh` green on the final tree
+- [x] Committed, pushed, draft PR opened
 
 ## 5. Acceptance criteria
 
@@ -153,3 +153,5 @@ verified) into `bindings/`, with a `--check` drift guard in CI.
 
 - 2026-09-14: plan written; Phase 0 research started.
 - 2026-09-15: Phase 3 integration — README, AGENTS.md, INSTALL docs, manifests bumped to 2.4.0, run_checks.sh extended, docs/platforms/README.md index created, plan checklist updated.
+- 2026-09-15: All four CI-style checks green (run_checks.sh, build_agents.py --check, build_bindings.py --check, check_manifests.py). All Phase 1-3 artifacts on disk. Remaining open: (F7) score-stability eval not executed, (M5) cross-harness scoreboard not built, LLM evals not run this session. Phase 4 review items (two-lens skill review, persona adversarial review, multi-lens diff review, commit/push/PR) still pending.
+- 2026-09-15: Phase 4 complete. Whole-diff review ran three rounds across six lenses (FIASSE fidelity, reference correctness, tooling policy and hook safety, consistency and drift, practitioner dry run, script correctness); 32 verified findings fixed, including misattributed FIASSE citations, installer documentation drift, crash paths in `securable_status.py` on malformed YAML, the missing `scan` subcommand in the opengrep hook, and the Write-versus-Edit escalation in generated persona bindings (now flagged in each affected binding). Final round returned nothing new. Still open: F7 score-stability eval, M5 cross-harness scoreboard, LLM eval workspaces authored but not executed.

@@ -54,7 +54,7 @@ fi
 
 # Run opengrep with a timeout (advisory — never block).
 OG_OUTPUT=""
-OG_OUTPUT="$(timeout 30 opengrep --config "$RULES" --json "$FILE_PATH" 2>/dev/null)" || true
+OG_OUTPUT="$(timeout 30 opengrep scan --config "$RULES" --json "$FILE_PATH" 2>/dev/null)" || true
 
 if [ -z "$OG_OUTPUT" ]; then
   exit 0

@@ -49,8 +49,12 @@ except ImportError:  # pragma: no cover
 def load_yaml_file(path: Path):
     if not path.is_file():
         return None
-    with path.open(encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    try:
+        with path.open(encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    except (yaml.YAMLError, UnicodeDecodeError) as exc:
+        print(f"error: failed to parse {path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 def gather_status(directory: Path) -> dict:
@@ -63,19 +67,28 @@ def gather_status(directory: Path) -> dict:
     if req_data is None:
         print(f"error: {req_path} not found — the status script requires requirements.yaml even when other contract files exist", file=sys.stderr)
         sys.exit(1)
+    if not isinstance(req_data, dict):
+        print(f"error: {req_path} top-level value must be a YAML mapping, got {type(req_data).__name__}", file=sys.stderr)
+        sys.exit(1)
 
     bnd_data = load_yaml_file(bnd_path)
     dep_data = load_yaml_file(dep_path)
     pol_data = load_yaml_file(pol_path)
 
     features = []
-    for feat in req_data.get("features", []):
+    for feat in req_data.get("features") or []:
+        if not isinstance(feat, dict):
+            print(f"warning: skipping non-dict feature entry: {feat!r}", file=sys.stderr)
+            continue
         fid = feat.get("id", "?")
         title = feat.get("title", "")
-        reqs = feat.get("requirements", [])
+        reqs = feat.get("requirements") or []
         counts = {"planned": 0, "implemented": 0, "verified": 0}
         unverified_ids = []
         for r in reqs:
+            if not isinstance(r, dict):
+                print(f"warning: {fid}: skipping non-dict requirement entry: {r!r}", file=sys.stderr)
+                continue
             status = r.get("status", "planned")
             if status not in counts:
                 print(f"warning: {fid}: unknown status '{status}', counting as planned", file=sys.stderr)
@@ -91,10 +104,13 @@ def gather_status(directory: Path) -> dict:
             "unverified_ids": unverified_ids,
         })
 
-    cc_reqs = req_data.get("cross_cutting", []) or []
+    cc_reqs = req_data.get("cross_cutting") or []
     cc_counts = {"planned": 0, "implemented": 0, "verified": 0}
     cc_unverified = []
     for r in cc_reqs:
+        if not isinstance(r, dict):
+            print(f"warning: cross_cutting: skipping non-dict requirement entry: {r!r}", file=sys.stderr)
+            continue
         status = r.get("status", "planned")
         if status not in cc_counts:
             print(f"warning: cross_cutting: unknown status '{status}', counting as planned", file=sys.stderr)
@@ -110,20 +126,23 @@ def gather_status(directory: Path) -> dict:
 
     # Dependencies
     dep_issues = []
-    if dep_data and isinstance(dep_data.get("dependencies"), list):
+    if dep_data and isinstance(dep_data, dict) and isinstance(dep_data.get("dependencies"), list):
         from datetime import date
         today = date.today().isoformat()
         for dep in dep_data["dependencies"]:
+            if not isinstance(dep, dict):
+                print(f"warning: skipping non-dict dependency entry: {dep!r}", file=sys.stderr)
+                continue
             name = dep.get("name", "?")
             nr = dep.get("next_review")
-            audit_result = dep.get("audit", {}).get("result", "unverified")
+            audit_result = (dep.get("audit") or {}).get("result", "unverified")
             if nr and nr <= today:
                 dep_issues.append({"name": name, "issue": f"past next_review ({nr})"})
             if audit_result == "unverified":
                 dep_issues.append({"name": name, "issue": "audit unverified"})
 
     policy_mode = None
-    if pol_data:
+    if pol_data and isinstance(pol_data, dict):
         policy_mode = pol_data.get("mode", "advisory")
 
     return {
@@ -139,7 +158,7 @@ def gather_status(directory: Path) -> dict:
         },
         "dependency_issues": dep_issues,
         "policy_mode": policy_mode,
-        "boundaries": bnd_data.get("boundaries", []) if bnd_data else [],
+        "boundaries": bnd_data.get("boundaries", []) if isinstance(bnd_data, dict) else [],
     }
 
 
@@ -185,6 +204,8 @@ def check_touched_boundaries(status: dict, changed_files: list[str]) -> list[dic
 
     touched = []
     for bnd in boundaries:
+        if not isinstance(bnd, dict):
+            continue
         bid = bnd.get("id", "")
         entry_points = bnd.get("entry_points", []) or []
         needles = [bid] + entry_points

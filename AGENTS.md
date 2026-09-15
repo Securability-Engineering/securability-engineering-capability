@@ -118,7 +118,7 @@ Produce one review-ready patch per confirmed root cause, each with a test and a 
 
 ### securability-verification
 
-Generate boundary contract tests from the securable contract, validate deployment configuration, produce a release posture summary, and flip `implemented` to `verified` with evidence (S5.2.4).
+Generate boundary contract tests from the securable contract, validate deployment configuration, produce a release posture summary, and flip `implemented` to `verified` with evidence (S3.2.1.3).
 
 **Invoke when**: the user asks to verify security requirements, write boundary tests, check deployment configuration, or produce a release posture report.
 
@@ -200,7 +200,7 @@ Only community-governed, non-commercial tools may be named or used anywhere in t
 - **opencode** — fetch-and-follow `.opencode/INSTALL.md`, or run `scripts/install_skills.sh --target .opencode` inside a project (or `--target "$HOME/.config/opencode"` for global use). opencode also discovers `.claude/skills/` and `.agents/skills/`; the installer supports those targets too.
 - **Other AGENTS.md tools (Codex, Gemini CLI, Zed, Amp, …)** — this file is read natively when the repo (or an installed copy) is in scope; skills follow the Agent Skills standard. Fetch-and-follow `.agents/INSTALL.md`, or install with the same script (`--target .agents`).
 
-`scripts/install_skills.sh` performs a layout-preserving copy (`skills/`, `data/`, `plays/`, `templates/` under one root), which is what keeps the relative references inside the skills working unchanged.
+`scripts/install_skills.sh` performs a layout-preserving copy (`skills/`, `data/`, `plays/`, `templates/`, `schema/`, `core/`, `rules/`, `agents/`, `bindings/`, and `docs/` under one root), which is what keeps the relative references inside the skills working unchanged.
 
 ## Testing
 

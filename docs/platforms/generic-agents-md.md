@@ -33,7 +33,7 @@ rm -rf /tmp/securable-claude-plugin
 ```
 
 The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-`core/`, `rules/`, `agents/`, and `bindings/` together under `.agents/`.
+`core/`, `rules/`, `agents/`, `bindings/`, and `docs/` together under `.agents/`.
 That sibling layout is load-bearing: relative references inside each
 `SKILL.md` depend on it. Pass a different root as `--target` if your tool
 discovers skills elsewhere. To update, re-clone and re-run with `--force`.

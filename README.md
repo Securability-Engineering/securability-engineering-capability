@@ -110,7 +110,7 @@ scripts/install_skills.sh --target "$HOME/.config/opencode"
 scripts/install_skills.sh --target .claude
 ```
 
-The script copies `skills/`, `data/`, `plays/`, `templates/`, `agents/`, `schema/`, `core/`, and `rules/` together under one root — the layout the skills' internal references depend on. Persona definitions in `agents/` ride along with the skills tree; pre-generated persona bindings for each harness ship under `bindings/`.
+The script copies `skills/`, `data/`, `plays/`, `templates/`, `agents/`, `schema/`, `core/`, `rules/`, `bindings/`, and `docs/` together under one root — the layout the skills' internal references depend on. Persona definitions in `agents/` ride along with the skills tree; pre-generated persona bindings for each harness ship under `bindings/`.
 
 ### Developing this plugin
 
@@ -270,7 +270,7 @@ tests/                             # Regression tests (see Testing below)
   run_tests.py                     # Claude Code CLI test runner (skill workspaces)
   kernel_ab.py                     # Kernel A/B runner + detector self-tests
   README.md                        # Test workspace conventions
-  <skill>-workspace/               # Per-skill eval workspaces (eleven skills)
+  <skill>-workspace/               # Per-skill eval workspaces (ten of eleven skills; fiasse-lookup has no workspace)
   kernel-ab-workspace/             # Kernel A/B evals (naturalistic prompts, deterministic grading)
   securable-contract/              # Contract validator tests
   opengrep-fixtures/               # Paired fail/pass fixtures for the rule pack

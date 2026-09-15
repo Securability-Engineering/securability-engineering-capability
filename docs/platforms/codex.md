@@ -29,7 +29,7 @@ rm -rf /tmp/securable-clone
 ```
 
 The installer copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-`core/`, `rules/`, `agents/`, and `bindings/` under `.agents/`. That sibling
+`core/`, `rules/`, `agents/`, `bindings/`, and `docs/` under `.agents/`. That sibling
 layout is load-bearing: relative references inside each `SKILL.md` depend on it.
 
 Optionally append the kernel to the project's `AGENTS.md`:

@@ -29,7 +29,8 @@ runtime hooks are added.
    ```
 
    The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-   `core/`, and `rules/` together under the target root. That sibling layout is
+   `core/`, `rules/`, `agents/`, and `bindings/` together under the target
+   root. That sibling layout is
    load-bearing: the relative references inside each `SKILL.md`
    (`../../data/…`, `../../plays/…`, `../../templates/…`) depend on it.
 

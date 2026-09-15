@@ -85,7 +85,7 @@ Ten subagent personas in `agents/`, discovered natively by Claude Code.
 | securable-builder | L2 | Pair programmer for securable code (S4.4, S2.6, S2.7) |
 | dependency-steward | L2 | Ongoing relationship with third-party code (S4.5, S4.6) |
 | merge-steward | L3 | Advisory Securability Report (S5.2.1-S5.2.5) |
-| triage-analyst | L3 | Actionable Security Intelligence (S6.3) |
+| triage-analyst | L3 | Actionable Security Intelligence (S6.2) |
 | remediation-engineer | L3 | Fix half of triage: one root cause, one patch (S6) |
 | verification-engineer | L4 | Verified means checked; Testability made real (S3.2.1.3) |
 | incident-learner | L5 | Lessons fed back upstream (S8.2.2) |

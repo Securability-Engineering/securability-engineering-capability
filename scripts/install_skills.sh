@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Install the securable skills into an agent tool's discovery path.
 #
-# Performs a layout-preserving copy of skills/, data/, plays/, and templates/
+# Performs a layout-preserving copy of skills/, data/, plays/, templates/, docs/,
 # into a single target root, so the relative references inside each SKILL.md
 # (../../data/..., ../../plays/..., ../../templates/...) keep resolving.
 #
@@ -35,7 +35,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Layout-preserving component set. schema/, core/, and rules/ ride along so the
 # skills' contract references (schema/securable/*, scripts/validate_securable.py)
 # and the kernel/rule pack work from an installed tree too.
-COMPONENTS=(skills data plays templates schema core rules agents bindings)
+COMPONENTS=(skills data plays templates schema core rules agents bindings docs)
 SCRIPT_FILES=(validate_securable.py securable_status.py)
 
 for c in "${COMPONENTS[@]}"; do
@@ -76,5 +76,5 @@ echo "  - opencode reads project .opencode/skills, .claude/skills, and .agents/s
 echo "    plus the same paths under ~/.config/opencode and ~/.claude and ~/.agents."
 echo "  - Claude Code reads project skills from .claude/skills (for the plugin itself,"
 echo "    install via the plugin manager instead of this script)."
-echo "  - Keep skills/, data/, plays/, templates/, agents/, and bindings/ siblings"
+echo "  - Keep skills/, data/, plays/, templates/, schema/, core/, rules/, docs/, agents/, and bindings/ siblings"
 echo "    under one root; the skills' internal references depend on that layout."

@@ -23,7 +23,7 @@ From a full checkout of this repository, run the installer targeting `.cursor`:
 scripts/install_skills.sh --target /path/to/your-project/.cursor
 ```
 
-This copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`, `core/`, `rules/`, `agents/`, and `bindings/` into `.cursor/`, preserving the relative-path layout the skills depend on.
+This copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`, `core/`, `rules/`, `agents/`, `bindings/`, and `docs/` into `.cursor/`, preserving the relative-path layout the skills depend on.
 
 ### Option B: manual layout
 
@@ -154,7 +154,7 @@ Cursor does not expose the lifecycle hook mechanism (SessionStart, PostToolUse) 
 **Manual equivalent for held checks**: run opengrep with the pack's rule set in your CI pipeline:
 
 ```bash
-opengrep --config rules/opengrep/ --target <paths>
+opengrep scan --config rules/opengrep/ --target <paths>
 ```
 
 `opengrep` must already be installed in your CI environment. The pack never installs tooling at runtime (see Tooling Policy below). If opengrep is absent, state that the held checks were not run rather than implying they passed.

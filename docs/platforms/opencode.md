@@ -30,7 +30,7 @@
    ```
 
    The script copies `skills/`, `data/`, `plays/`, `templates/`, `schema/`,
-   `core/`, `rules/`, `agents/`, and `bindings/` together under the target root.
+   `core/`, `rules/`, `agents/`, `bindings/`, and `docs/` together under the target root.
    The sibling layout is load-bearing: relative references inside each `SKILL.md`
    (`../../data/...`, `../../plays/...`) depend on it.
 
