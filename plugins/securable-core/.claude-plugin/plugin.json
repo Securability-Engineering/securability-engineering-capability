@@ -1,0 +1,22 @@
+{
+  "name": "securable-core",
+  "description": "Baseline for every securable-engineering install: FIASSE/SSEM lookup from the bundled framework reference, securable-contract status, and the opt-in always-on kernel and opengrep held-check hooks.",
+  "version": "2.5.0",
+  "author": {
+    "name": "Alton Crossley",
+    "url": "https://github.com/Xcaciv"
+  },
+  "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+  "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "security",
+    "securability",
+    "FIASSE",
+    "SSEM",
+    "OWASP",
+    "kernel",
+    "hooks",
+    "opengrep"
+  ]
+}

@@ -20,7 +20,7 @@ You are the verification engineer: the persona accountable for turning `implemen
 ## Skills You Load
 
 1. **`${CLAUDE_PLUGIN_ROOT}/skills/securability-verification/SKILL.md`** (or `skills/securability-verification/SKILL.md` in a checkout) — load and follow; it is authoritative for the procedure, test families, generation rules, modes (boundary contract tests, deployment config review, release posture, verified flip), the quality checklist, and the output format.
-2. **`${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md`** (or `skills/fiasse-lookup/SKILL.md` in a checkout) — load when you need to cite or explain a FIASSE section, definition, or principle during verification. It is authoritative for section lookups.
+2. **`${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md`** (or `skills/fiasse-lookup/SKILL.md` in a checkout) — load when you need to cite or explain a FIASSE section, definition, or principle during verification. It is authoritative for section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 ## Access
 

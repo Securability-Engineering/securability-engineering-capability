@@ -1,0 +1,350 @@
+---
+name: prd-securability-enhancement
+description: Enhance PRDs, feature specs, user stories, tickets, or product briefs with explicit OWASP ASVS coverage and FIASSE v1.1 SSEM implementation guidance — before code is written. Trigger on "harden the PRD/spec", "choose ASVS level", "map features to ASVS", "find missing security requirements", "add NFRs for security", "make these requirements securable", "security-review my product brief", "add security criteria to this story/ticket", "what changed in the requirements". Supports single-story mode (one user story or ticket in, security-enhanced story out) and contract-diff mode (changed PRD + existing contract in, requirement delta out). For code review use securability-engineering-review; for code generation use securability-engineering.
+license: CC-BY-4.0
+---
+
+# PRD Securability Enhancement (FIASSE/SSEM + ASVS)
+
+Enhance PRD content so each feature has explicit, testable securability requirements aligned to OWASP ASVS and shaped by FIASSE v1.1 / SSEM. The goal is to upgrade the requirements artifact *before* implementation, so delivery teams build securable capabilities by design rather than retrofitting controls later.
+
+> **Path resolution**: every `data/`, `plays/`, and `templates/` path in this skill lives at the plugin root — the directory two levels above this SKILL.md file. In a Claude Code plugin install that root is `${CLAUDE_PLUGIN_ROOT}`; in a repo checkout or a copied skills tree, resolve relative to this file (e.g., `../../data/asvs/README.md`). These paths never refer to the user's project.
+
+This skill is requirements-centric. It does not review or write code. If the user wants code review, redirect to `securability-engineering-review`. If they want code generation, redirect to `securability-engineering`.
+
+## When to Invoke
+
+Trigger this skill when the user asks to:
+
+- Strengthen or harden a PRD, spec, user-story set, or product brief with security requirements
+- Choose an ASVS assurance level (Level 1, 2, or 3) for a product or feature
+- Map features to ASVS controls or check ASVS coverage of a requirements doc
+- Find missing security requirements before development starts
+- Annotate features with SSEM attributes or FIASSE tenets
+- Add testable security acceptance criteria to existing functional requirements
+
+Adjacent phrasings: "security-review this spec", "what's missing security-wise from this feature list", "add NFRs for security to my PRD", "make these requirements securable", "add security criteria to this ticket", "what security requirements changed".
+
+Two additional modes extend the core workflow:
+
+- **Single-story mode** — input is one user story or ticket rather than a full PRD. See "Single-Story Mode" below.
+- **Contract-diff mode** — input is a changed PRD plus an existing `.securable/requirements.yaml`. See "Contract-Diff Mode" below.
+
+## Inputs
+
+Ask the user for whatever is missing before starting:
+
+- The PRD, spec, or feature list (markdown, prose, ticket export, etc.)
+- System context: user types, deployment model, data sensitivity, integration surfaces
+- Compliance or risk context, if any (HIPAA, PCI, SOC 2, regulated industry)
+- Whether they have an ASVS level preference, or want this skill to recommend one
+
+If the artifact is large, parse the features inline; do not require the user to pre-extract them. If the artifact exceeds a reasonable single-pass size (e.g., more than ~50 features), process it in batches of features, emitting partial coverage matrices and combining them at the end.
+
+## Procedure
+
+### Step 1 — Parse features
+
+Extract each feature into a normalized record. Capture for each:
+
+- Feature ID and title (assign IDs like `F-01` if absent)
+- Actor (user role, system, external service)
+- Data touched and sensitivity class
+- Trust boundaries crossed (browser↔server, service↔service, server↔storage, internal↔external)
+- Existing acceptance criteria (verbatim, even if weak)
+
+If the source PRD lumps several capabilities into one bullet, split them so each feature is independently testable.
+
+### Step 2 — Choose the ASVS level *first*
+
+Selecting the level before mapping requirements prevents both under-scoping and over-scoping. Use this rubric:
+
+| Level | Use when |
+|-------|----------|
+| **1** | Internal tooling, prototypes, low-sensitivity data, no regulatory pressure, limited blast radius if compromised |
+| **2** | Typical production web/API systems with authenticated users, business-critical behavior, customer data, or moderate regulatory exposure (most products land here) |
+| **3** | High-assurance contexts: payments, health records, government, identity providers, anything where compromise causes severe material impact or where attackers are well-resourced |
+
+Default to Level 2 unless evidence pushes lower or higher. Document:
+
+- Chosen level
+- Why lower levels are insufficient (when level > 1)
+- Any specific features that should escalate above the baseline (e.g., a payments endpoint inside a Level-2 product gets Level-3 treatment)
+
+### Step 3 — Map each feature to ASVS
+
+For every feature, use `data/asvs/README.md` (chapter index) and the `when_to_use` frontmatter in `data/asvs/V*.md` to identify applicable chapters.
+
+> **Numbering discipline**: all references use **ASVS 5.0** chapter numbering, which differs sharply from 4.x (in 5.0, Authentication is **V6**, not V2; Authorization is **V8**, not V4; Input Validation lives in **V2**, not V12). When in doubt, open the chapter file and confirm its `title` frontmatter before citing it. Never emit a requirement ID you have not confirmed against `data/asvs/`.
+
+Common mappings (ASVS 5.0):
+
+- Any user/external input, business-logic rules, rate limiting / anti-automation → V2 (Validation and Business Logic)
+- Output encoding, injection defense, sanitization → V1 (Encoding and Sanitization)
+- Browser-delivered UI (cookies, security headers, CSP, origin separation) → V3 (Web Frontend Security)
+- Public APIs, webhooks, GraphQL, WebSocket → V4 (API and Web Service)
+- File upload/download/storage → V5 (File Handling)
+- Auth flows (login, passwords, MFA, account recovery) → V6 (Authentication)
+- Sessions → V7 (Session Management)
+- Authorization, ownership, multi-tenant scoping → V8 (Authorization)
+- JWTs and other self-contained tokens → V9 (Self-contained Tokens)
+- OAuth/OIDC integration → V10 (OAuth and OIDC)
+- Crypto, key management, hashing, randomness → V11 (Cryptography)
+- TLS / transport security → V12 (Secure Communication)
+- Config, secrets, environment/deployment → V13 (Configuration)
+- PII, data at rest, retention, minimization → V14 (Data Protection)
+- Dependencies, defensive coding, concurrency → V15 (Secure Coding and Architecture)
+- Logging, audit trails, error handling → V16 (Security Logging and Error Handling)
+
+Filter requirements by the chosen ASVS level. For each requirement, classify coverage:
+
+- **Covered** — the PRD already satisfies the intent
+- **Partial** — partly covered; clarify or strengthen acceptance criteria
+- **Missing** — requirement absent and must be added
+- **N/A** — justified with a one-line rationale
+
+Use the **ASVS Coverage Gap Pattern Table** below to spot the gaps that PRDs reliably miss.
+
+### Step 4 — Add Securability Notes per feature
+
+Write a *short* paragraph per feature surfacing only the SSEM and FIASSE points that materially shape implementation. Do not enumerate all ten SSEM attributes or all FIASSE tenets — that produces noise.
+
+Useful lenses (mention only when relevant):
+
+- Trust-boundary handling and input canonicalization (FIASSE v1.1 S4.3, S4.4.1)
+- Isolated Integrity — never trust client-supplied values for server-owned state (FIASSE v1.1 S4.4.1.2)
+- Canonical Parsing — process only the named values you expect (FIASSE v1.1 S4.4.1.1)
+- Observability: what must be logged or auditable (FIASSE v1.1 S3.2.1.4 + Accountability; Transparency S2.6)
+- Least Astonishment — predictable behavior at trust boundaries and error paths (FIASSE v1.1 S2.7)
+- Resilience or availability drivers (rate limits, timeouts, graceful and **secure** failure)
+- Testability or modifiability mandates (e.g., centralizing crypto/auth in a dedicated module)
+- Dependency stewardship — ongoing relationship with third-party code (FIASSE v1.1 S4.6)
+
+### Step 5 — Convert into testable acceptance criteria
+
+For each added or strengthened requirement, write at least one acceptance criterion that is:
+
+- Behaviorally observable (a test or audit can confirm pass/fail)
+- Specific about boundary conditions (failure modes, unauthorized actors, malformed input)
+- Tied to a verifiable artifact (log line, response code, denied action)
+
+Ambiguous "secure" or "robust" language is not acceptable here.
+
+### Step 6 — Emit the enhanced PRD artifact
+
+Produce these sections in order, using the exact templates below. Before finalizing, verify every step's output is present for every feature using this checklist:
+
+| Step | Required Output | Validation |
+|------|------------------|------------|
+| 2 | ASVS level chosen and justified | Stated once, applies to all features |
+| 3 | ASVS chapter mapping per feature | Every feature has at least one mapped section or an explicit N/A rationale |
+| 3 | Gap-pattern check per feature | Matched pattern applied, or noted as not applicable |
+| 4 | Securability Notes per feature | Short paragraph present, not a full attribute enumeration |
+| 5 | Acceptance criteria per added/strengthened requirement | Each is behaviorally testable |
+| 7 | Contract entries emitted and validated | `scripts/validate_securable.py` run and passing |
+
+### Step 7 — Emit the machine-readable contract
+
+Alongside the prose PRD, write the same requirements as a **securable contract**: `.securable/requirements.yaml` (and `.securable/boundaries.yaml` for the trust-boundary map discovered in Step 1). This is the artifact that outlives the session — any code-generation harness reads it, the generation skill implements against it and flips `status: planned → implemented`, and merge review flips `implemented → verified` with evidence. Never emit a requirement here that lacks a testable acceptance criterion (that would be a control citation, not a requirement — FIASSE v1.1 S6.1.1).
+
+- Shape: `schema/securable/requirements.schema.json` and `schema/securable/boundaries.schema.json` (paths relative to the plugin root); worked example in `examples/securable/`.
+- Every ASVS reference must exist in `data/asvs/`; run `scripts/validate_securable.py --dir .securable` after writing and fix anything it rejects before finishing. If validation fails after two correction attempts, stop and report the specific validator errors to the user instead of continuing to guess.
+- Requirements above the chosen baseline level carry `level` and `escalation: true`.
+- Write the contract into the **user's project** at `.securable/` (ask before creating the directory if the project layout is unclear).
+
+## ASVS Coverage Gap Pattern Table
+
+These are the gaps PRDs reliably miss. When you see one of the trigger phrasings on the left, add the named requirements on the right — they are almost always missing in the source artifact. If a feature does not match any listed gap pattern, still perform the full ASVS chapter mapping in Step 3 using the common mappings table, and note in Securability Notes that no specific gap pattern applied.
+
+| PRD trigger phrasing (what the feature *says*) | Almost-always-missing requirements | ASVS 5.0 sections | Tag |
+|---|---|---|---|
+| "User logs in with email and password" | Account-enumeration parity (same response/timing for valid vs invalid email); password-screen against breached-password list; auth-event audit log; per-account brute-force rate limit | V6.2, V6.3.1, V6.3.8, V2.4, V16.3 | "Auth surface gaps" |
+| "User resets/forgets password" | Account-enumeration parity on the request endpoint; single-use token; short expiry (≤15 min); token-hash-at-rest; rate-limit per email and per IP; audit log of issuance/redemption | V6.3.8, V6.4.1, V6.2, V2.4, V16.3 | "Reset flow gaps" |
+| "User uploads a file" | Type allow-list (not deny-list); content-sniffing vs declared type; max size; antivirus/safe-storage path; filename canonicalization; storage outside web root; URL non-guessability | V5.1, V5.2, V5.3, V2.2 | "Upload gaps" |
+| "User can edit their profile" / "update settings" | Allow-listed mutable fields (no `email`/`role`/`is_admin` from request body); ownership check on the resource; audit log of changes; old-vs-new value capture | V8.2.2, V8.2.3, V2.2, V16.3 | "Mass-assignment gaps" |
+| "Admin can do X" / "role-based access" | Authorization decision logged with grant/deny; centralized authz module (not scattered checks); deny-by-default at boundary; ownership scoping on every record fetch | V8.1, V8.2, V8.3, V16.3.2 | "Authz gap" |
+| "Public API endpoint" / "third-party integration" | Per-key/per-client rate limits; auth for every call (not first-call only); request-id propagation; response field allow-list (no leaking internal fields); contract validation | V4.1, V2.4, V14.2.6, V16.2 | "API gaps" |
+| "Send email/SMS to user" | Templated payload with no user-controlled subject/body injection; rate-limit per recipient and per actor; bounce/abuse-loop handling; opt-out and audit log | V1.2, V2.2, V2.4, V16.3 | "Outbound-message gaps" |
+| "Search / filter / list with user-supplied parameters" | Parameter allow-list; ordering/pagination caps; query timeout; result count cap; tenant/owner scoping enforced server-side | V2.2, V2.4, V8.2 | "Query-surface gaps" |
+| "Webhook receiver" / "callback URL" | Source verification (signature, mTLS, IP allow-list); replay protection (timestamp + nonce); idempotency key; rate-limit; audit log of received events | V4.1.5, V12.3.5, V2.4, V16.3 | "Webhook gaps" |
+| "Save user file/document/note" | Owner identifier never client-supplied; size and content caps; rich-text/HTML sanitization on read or write; audit log of writes | V8.2.2, V2.2, V1.3, V16.3 | "Server-owned state gaps (Isolated Integrity)" |
+| "Export data" / "download report" | Authorization re-checked on export (not just on UI route); rate-limit; audit log including row count; PII-scrub policy if applicable | V8.3, V2.4, V14.2, V16.3 | "Export gaps" |
+| "Background job processes user-submitted data" | Same boundary discipline as the synchronous path (validation, surface minimization, owner scoping); job-level audit log; poison-message handling and DLQ | V2.2, V2.3, V16.3 | "Async-path boundary gaps" |
+| "Configuration / feature flag / admin setting" | Change requires authenticated actor and audit record; cannot be set via product API without admin role; secret values never echoed back; defaults are safe | V13.1, V13.3, V8.2, V16.3 | "Config-surface gaps" |
+| "PII/PHI/financial data" mentioned anywhere | Field-level classification; encryption at rest and in transit; retention/disposal policy; access-log requirement; export/erasure (right-to-be-forgotten) flows | V14.1, V14.2.6, V14.2.7, V11.3, V12.1, V16.3.2 | "Sensitive-data lifecycle gaps" |
+| "Real-time" / "websocket" / "streaming" feature | Per-connection auth (not just first message); per-connection resource caps; back-pressure / max-queue; idle timeout; audit of connection lifecycle | V4.4, V7.2, V2.4, V16.3 | "Streaming gaps" |
+| "AI/LLM-backed feature" | Prompt-injection handling at trust boundary; output validation before downstream side effects; per-actor rate limit and cost cap; audit log of prompts and tool calls; PII redaction policy | V2.2, V2.4, V14.2, V16.3 | "LLM boundary gaps" |
+
+When a feature triggers one of these patterns, prefill the corresponding requirements as **Missing** in the coverage matrix unless the PRD explicitly addresses them — most of the time it doesn't.
+
+Two notes on using this table honestly:
+
+- **Level accuracy** — some of these requirements sit above Level 2 (e.g., account-enumeration parity 6.3.8 is Level 3). When a gap-table item is above the chosen baseline level, add it as a **recommended escalation** with its level stated, not as a silent baseline requirement. The table earns trust by being right about levels, not by inflating scope.
+- **AI/LLM row** — ASVS 5.0 has no LLM-specific chapter; the sections cited are the closest anchors (input validation, anti-automation/cost caps, data protection, security events). Name the concern precisely in the requirement text and treat the ASVS reference as the nearest verifiable hook.
+
+## Output Templates
+
+### A. ASVS Level Decision
+
+```markdown
+## ASVS Level Decision
+
+**Chosen Level**: [1 | 2 | 3]
+
+**Rationale**: [2–4 sentences. Cover data sensitivity, user population, regulatory context, and material-impact reasoning. Note why lower levels are insufficient if Level > 1.]
+
+**Feature-Level Escalations**: [List any features that need a higher level than baseline, with one-line justification, or "None".]
+```
+
+### B. Coverage Matrix
+
+```markdown
+## Feature ↔ ASVS Coverage Matrix
+
+| Feature | ASVS Section | Requirement ID | Level | Coverage | PRD Change Needed |
+|---------|--------------|----------------|-------|----------|-------------------|
+| F-01    | V2.2         | 2.2.1          | 2     | Missing  | Add MFA requirement for high-risk actions |
+| F-01    | V7.1         | 7.1.1          | 2     | Partial  | Specify which auth events are logged |
+| F-02    | V12.1        | 12.1.1         | 2     | Covered  | — |
+```
+
+Aim for completeness over brevity here — every feature × every applicable requirement gets a row. Where the gap pattern table applies, include the named requirements it surfaces.
+
+### C. Enhanced Feature Specifications
+
+For each feature, emit exactly this shape:
+
+```markdown
+### Feature F-01: [Title]
+
+**Actor**: [user role / system]
+**Data**: [data classes touched]
+**Trust Boundaries**: [boundaries crossed]
+
+**ASVS Mapping**: V2.2.1, V7.1.1, ...
+
+**Updated Requirements**:
+- [Original requirement, kept or rewritten]
+- [Newly added requirement from ASVS mapping]
+- [Newly added requirement from ASVS mapping]
+
+**Acceptance Criteria**:
+- [Testable criterion tied to a requirement above]
+- [Testable criterion tied to a requirement above]
+
+**Securability Notes**: [Short paragraph — only material SSEM/FIASSE points for this feature. Do not enumerate all attributes.]
+```
+
+### D. Cross-Cutting Securability Requirements
+
+Controls that span multiple features (centralized logging, secrets management, dependency policy, baseline TLS, error-handling standards). One bullet each, with the ASVS reference.
+
+### E. Open Gaps and Assumptions
+
+Anything you could not resolve from the input: missing system context, unclear data sensitivity, unstated user populations, deferred decisions. Be explicit so the team can close these before implementation.
+
+### F. Securable Contract (machine-readable)
+
+The `.securable/requirements.yaml` / `.securable/boundaries.yaml` pair from Step 7, validated. In the prose artifact, reference it with one line and the validator command; do not duplicate its contents inline.
+
+## Worked Example (Mini)
+
+**Input feature (from a PRD):**
+
+> F-03: Users can reset their password by clicking "Forgot Password" and entering their email. The system emails a reset link.
+
+This trips the "Reset flow gaps" pattern in the gap table — so the missing requirements are predictable.
+
+**Enhanced output:**
+
+```markdown
+### Feature F-03: Password Reset via Email
+
+**Actor**: Unauthenticated user (claiming an account)
+**Data**: Email address (PII), password (credential), reset token
+**Trust Boundaries**: browser → public API; API → email provider; API → credential store
+
+**ASVS Mapping**: V2.2.1, V2.4.1, V6.2.1, V6.2.4, V6.3.8 (L3 escalation), V6.4.1, V16.3.1
+
+**Updated Requirements**:
+- User can request a password reset by entering an account email at `/reset`.
+- The system always returns the same success response whether or not the email matches an account (prevents account enumeration, V6.3.8 — a Level 3 requirement, added here as a recommended escalation because recovery flows are a favorite enumeration surface).
+- Reset tokens are single-use, expire within 15 minutes, and are stored only as a salted hash (V6.4.1 — recovery secrets must expire quickly and must not become long-term credentials).
+- New passwords are validated against the password policy and screened against a known-breached-password list (V6.2.1, V6.2.4).
+- All reset requests, token issuances, token redemptions, and password changes are logged with user ID, source IP, user agent, and outcome (V16.3.1).
+- Reset requests are rate-limited per email and per source IP (V2.4.1).
+- The email input is canonicalized and validated against a strict format (V2.2.1).
+
+**Acceptance Criteria**:
+- Submitting a non-existent email returns the same response body, status code, and timing characteristics as a valid email (within tolerance).
+- A reset token cannot be redeemed after 15 minutes or after first successful use; both cases produce a generic failure response and a logged `reset_token_invalid` event.
+- More than 5 reset requests for the same email within 10 minutes are rejected with HTTP 429 and logged.
+- Audit log lines for reset events are queryable by user ID and contain the fields above.
+
+**Securability Notes**: This feature crosses an unauthenticated trust boundary (FIASSE v1.1 S4.3), so input handling and rate limiting are the load-bearing concerns. The reset token is server-owned state; never accept client-supplied token attributes beyond the opaque token itself (Isolated Integrity, FIASSE v1.1 S4.4.1.2). Centralize token generation, hashing, and verification in a single module so the policy can evolve without touching call sites (Modifiability). All reset events must be observable in the audit pipeline so abuse patterns can be detected (Accountability + Observability, FIASSE v1.1 S3.2.1.4; Transparency S2.6).
+```
+
+This is the level of specificity the output should hit — concrete, testable, and traceable back to ASVS.
+
+## Single-Story Mode
+
+When the input is a single user story, ticket, or feature description — not a full PRD — run a focused variant of the procedure:
+
+1. **Parse the story** — extract actor, data touched, trust boundaries crossed, and existing acceptance criteria (Step 1, single feature).
+2. **Inherit the ASVS level** — use the level from `.securable/requirements.yaml` if it exists, or ask. If the inherited level appears inconsistent with the feature's apparent sensitivity, flag this discrepancy in Open Gaps rather than silently overriding it.
+3. **Map to ASVS and apply gap patterns** — same as Steps 3–4, scoped to this one feature.
+4. **Add Security Features and Acceptance Criteria** — per FIASSE v1.1 S4.1.2, the output includes Security Features (specific security capabilities the story requires), Threat Scenarios (referencing the `threat-modeling` skill as the source — do not inline a full threat model here), and testable Security Acceptance Criteria. This is the first leading indicator of adoption: security acceptance criteria appearing on stories as a matter of course (FIASSE v1.1 S8.2.1).
+5. **Emit the enhanced story** — the original story text, augmented with the sections above and a short Securability Notes paragraph.
+6. **Emit the contract requirement block** — one or more requirement entries in `.securable/requirements.yaml` shape (feature id, requirement ids, ASVS references, acceptance criteria, `status: planned`). If the contract file already exists, append; otherwise emit the block for the user to place.
+
+The output is deliberately compact — a story that fits in a ticket, not a multi-page PRD artifact.
+
+## Contract-Diff Mode
+
+When the input is a changed PRD (or a set of changed stories) **plus** an existing `.securable/requirements.yaml`, produce a delta rather than a full enhancement:
+
+1. **Read the existing contract** — load `.securable/requirements.yaml` and `.securable/boundaries.yaml` (when present).
+2. **Parse the changed PRD** — identify new, changed, and removed features relative to the contract's feature list.
+3. **For each new feature** — run the standard enhancement procedure (Steps 1–7) and emit new requirement entries with `status: planned`.
+4. **For each changed feature** — re-map to ASVS, re-apply gap patterns, and emit updated requirement entries. Preserve `status` for requirements whose acceptance criteria are unchanged; reset to `planned` for requirements whose criteria changed materially.
+5. **For each removed feature** — list the requirement ids that no longer have a parent feature. Do not delete them silently; flag them for the team to confirm removal.
+6. **For unchanged features** — carry forward without modification; do not re-emit.
+7. **Emit the delta** — a structured diff: new requirements, changed requirements (with what changed), removed requirements (flagged for confirmation), and a summary count. Where boundaries changed, note additions or removals for `.securable/boundaries.yaml` and reference the `threat-modeling` skill for boundary-map updates.
+
+Run `scripts/validate_securable.py --dir .securable` after applying the delta.
+
+## Quality Checklist (run before emitting)
+
+**Coverage**
+- [ ] Every feature has an ID, actor, data classification, and trust-boundary list
+- [ ] ASVS level is chosen and justified before per-feature mapping
+- [ ] Every feature mapped against all applicable ASVS chapters at the chosen level
+- [ ] Gap patterns from the table above were applied to every relevant feature
+- [ ] Every Missing/Partial item produced a concrete PRD change
+
+**Output discipline**
+- [ ] Coverage matrix is present and includes change-needed column
+- [ ] Each feature follows the exact output shape (Actor / Data / Trust Boundaries / ASVS Mapping / Updated Requirements / Acceptance Criteria / Securability Notes)
+- [ ] Acceptance criteria are behaviorally testable, not aspirational
+- [ ] Securability Notes are surgical — only material SSEM/FIASSE points, not exhaustive enumeration
+
+**Traceability**
+- [ ] Every added requirement cites its ASVS reference
+- [ ] Cross-cutting requirements section captures shared controls
+- [ ] Open gaps and assumptions are listed explicitly
+
+## When in doubt
+
+- Prefer adding a missing requirement over assuming coverage; mark it explicitly so reviewers see it.
+- Prefer fewer, sharper ASVS references per feature over a long list that nobody will action.
+- Prefer plain language in Securability Notes — these are read by product managers, not just security engineers.
+
+## Reference Material
+
+- Step-by-step runbook: [plays/requirements-analysis/prd-fiasse-asvs-enhancement.md](../../plays/requirements-analysis/prd-fiasse-asvs-enhancement.md)
+- ASVS chapter index: `data/asvs/README.md`
+- ASVS requirements (per chapter): `data/asvs/V*.md`
+- FIASSE v1.1 foundational principles: `data/fiasse/S2.1.md`–`S2.7.md` (Transparency S2.6, Least Astonishment S2.7)
+- FIASSE v1.1 SSEM attribute umbrellas: `data/fiasse/S3.2.1.md`–`S3.2.3.md`; leaf files (e.g. `S3.2.1.4.md` Observability) for attribute-specific guidance
+- FIASSE v1.1 Boundary Control and Resilient Coding: `data/fiasse/S4.3.md`, `S4.4.md`, and the canonical-input-handling leaves `S4.4.1.md`, `S4.4.1.1.md`, `S4.4.1.2.md`
+- FIASSE v1.1 Dependency Management and Stewardship: `data/fiasse/S4.5.md`, `S4.6.md`

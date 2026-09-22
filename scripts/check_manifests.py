@@ -13,6 +13,11 @@ license, and repository, and any relative resource pointer (e.g. the Cursor
 manifest's "skills" path) must resolve inside the repo. Install documents that
 carry no version (.opencode/INSTALL.md, .agents/INSTALL.md) must exist.
 
+The persona plugins (marketplace plugins[1:], generated into plugins/<name>/
+by scripts/build_plugins.py) must each point at a directory holding a
+plugin.json whose name matches the entry, and both the entry and that
+manifest must carry the canonical version, license, and repository.
+
 Exit status: 0 when consistent, 1 with one line per problem otherwise.
 """
 
@@ -101,6 +106,30 @@ def main() -> int:
                         f"{entry.get(field)!r} != {CANONICAL} {field} {canonical.get(field)!r}"
                     )
 
+        for index, entry in enumerate(plugins[1:] if isinstance(plugins, list) else [], start=1):
+            label = f".claude-plugin/marketplace.json: plugins[{index}]"
+            if not isinstance(entry, dict):
+                errors.append(f"{label} must be an object")
+                continue
+            source = entry.get("source")
+            if not isinstance(source, str) or not source.startswith("./plugins/"):
+                errors.append(f"{label}.source {source!r} must be ./plugins/<name>")
+                continue
+            source_dir = (REPO_ROOT / source).resolve()
+            if REPO_ROOT not in source_dir.parents:
+                errors.append(f"{label}.source {source!r} resolves outside repo")
+                continue
+            sub_rel = f"{source.removeprefix('./')}/.claude-plugin/plugin.json"
+            sub_manifest = load(sub_rel, errors)
+            if sub_manifest is None:
+                continue
+            if sub_manifest.get("name") != entry.get("name"):
+                errors.append(f"{sub_rel}: name {sub_manifest.get('name')!r} != {label}.name {entry.get('name')!r}")
+            for field in ("version", "license", "repository"):
+                for where, value in ((label, entry.get(field)), (sub_rel, sub_manifest.get(field))):
+                    if value != canonical.get(field):
+                        errors.append(f"{where}: {field} {value!r} != {CANONICAL} {field} {canonical.get(field)!r}")
+
     for rel in INSTALL_DOCS:
         if not (REPO_ROOT / rel).is_file():
             errors.append(f"{rel}: missing")
@@ -112,6 +141,9 @@ def main() -> int:
 
     for rel in [CANONICAL, ".claude-plugin/marketplace.json", *MIRROR_MANIFESTS, *INSTALL_DOCS]:
         print(f"ok {rel}")
+    if marketplace is not None:
+        for entry in marketplace.get("plugins", [])[1:]:
+            print(f"ok {entry.get('source')}/.claude-plugin/plugin.json")
     print(f"manifests in lockstep at version {canonical['version']}")
     return 0
 

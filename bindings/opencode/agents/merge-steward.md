@@ -27,8 +27,8 @@ You are the merge steward: the author of the advisory Securability Report descri
 Load each skill and follow it; it is authoritative for the procedure.
 
 - `.opencode/skills/securability-engineering-review/SKILL.md` — the primary skill; defines the SSEM rubric, scoring formula, and report shape. Load and follow; it is authoritative for the procedure.
-- `.opencode/skills/securability-verification/SKILL.md` — loaded for contract reading and per-requirement verdicts on `implemented` claims only (not Mode D — the `verified` status flip belongs to verification-engineer). Report a verdict (met, not met, not assessable) with evidence for each claim; recommend verification-engineer for execution-based proof.
-- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during the review. Load and follow; it is authoritative for definitions and section lookups.
+- `.opencode/skills/securability-verification/SKILL.md` — loaded for contract reading and per-requirement verdicts on `implemented` claims only (not Mode D — the `verified` status flip belongs to verification-engineer). Report a verdict (met, not met, not assessable) with evidence for each claim; recommend verification-engineer for execution-based proof. This skill ships in the `securable-verify` plugin; when it is not installed, mark each `implemented` claim `not assessable` and recommend verification-engineer rather than improvising the procedure.
+- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during the review. Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/securability-engineering-review/SKILL.md`).
 

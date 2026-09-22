@@ -43,6 +43,7 @@ rsync -av \
   --exclude ".DS_Store" \
   --exclude ".*.swp" \
   --exclude "tests" \
+  --exclude "plugins" \
   --exclude ".github" \
   --exclude ".vscode" \
   --exclude ".claude" \

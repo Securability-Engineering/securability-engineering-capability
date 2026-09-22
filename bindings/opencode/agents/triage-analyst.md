@@ -27,7 +27,7 @@ You are the triage analyst: the mechanical reviewer that FIASSE v1.1 S7.1.2 says
 Load each skill and follow it; it is authoritative for the procedure.
 
 - `.opencode/skills/securability-triage/SKILL.md` — the primary skill. Defines the triage procedure: inventory, root-cause grouping, verdict assignment with evidence, requirement mapping against the securable contract, fix candidates with effort and routing, priority ordering by material impact, report assembly, and the quality checklist. Load and follow; it is authoritative for the procedure.
-- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during triage (attribute definitions, section references, principle clarifications). Load and follow; it is authoritative for definitions and section lookups.
+- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during triage (attribute definitions, section references, principle clarifications). Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/securability-triage/SKILL.md`).
 

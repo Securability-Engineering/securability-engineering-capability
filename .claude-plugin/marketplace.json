@@ -11,7 +11,7 @@
       "name": "securable-claude-plugin",
       "source": "./",
       "description": "Five-layer securable engineering across requirements, guardrails, code control, verification, and incident response — with eleven skills, ten agent personas, and held checks — through the FIASSE/SSEM framework (targets FIASSE v1.1).",
-      "version": "2.4.0",
+      "version": "2.5.0",
       "author": {
         "name": "Alton Crossley"
       },
@@ -34,6 +34,168 @@
         "requirements",
         "compliance"
       ]
+    },
+    {
+      "name": "securable-core",
+      "source": "./plugins/securable-core",
+      "description": "Baseline for every securable-engineering install: FIASSE/SSEM lookup from the bundled framework reference, securable-contract status, and the opt-in always-on kernel and opengrep held-check hooks.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "kernel",
+        "hooks",
+        "opengrep"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-requirements",
+      "source": "./plugins/securable-requirements",
+      "description": "L1 requirements for product owners and architects: PRD securability enhancement against ASVS 5.0 and threat modeling with boundary maps, through the FIASSE/SSEM framework.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "requirements",
+        "PRD",
+        "ASVS",
+        "threat-modeling"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-build",
+      "source": "./plugins/securable-build",
+      "description": "L2 guardrails for developers: securable-by-default code generation and third-party dependency stewardship, through the FIASSE/SSEM framework.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "code-generation",
+        "secure-by-design",
+        "dependencies"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-review",
+      "source": "./plugins/securable-review",
+      "description": "L3 code control for reviewers and AppSec: SSEM securability review, scanner-output triage, and review-ready remediation patches, through the FIASSE/SSEM framework.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "code-review",
+        "triage",
+        "remediation",
+        "SAST"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-verify",
+      "source": "./plugins/securable-verify",
+      "description": "L4 pre-deployment validation for QA and release engineers: boundary contract tests, deployment configuration review, and evidence-backed implemented-to-verified flips, through the FIASSE/SSEM framework.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "verification",
+        "testing",
+        "release"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-incident",
+      "source": "./plugins/securable-incident",
+      "description": "L5 production learning for SRE and incident responders: security postmortems that yield failed attributes, regression tests, candidate opengrep rules, and new requirements, through the FIASSE/SSEM framework.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "postmortem",
+        "incident-response"
+      ],
+      "category": "security"
+    },
+    {
+      "name": "securable-adoption",
+      "source": "./plugins/securable-adoption",
+      "description": "Program-level FIASSE adoption for leadership and program owners: readiness assessment, leading and lagging indicators, role mapping, and degraded-mode paths with named gaps.",
+      "version": "2.5.0",
+      "author": {
+        "name": "Alton Crossley"
+      },
+      "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+      "license": "CC-BY-4.0",
+      "keywords": [
+        "security",
+        "securability",
+        "FIASSE",
+        "SSEM",
+        "OWASP",
+        "adoption",
+        "program",
+        "leadership"
+      ],
+      "category": "security"
     }
   ]
 }

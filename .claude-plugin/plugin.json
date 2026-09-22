@@ -1,6 +1,6 @@
 {
   "name": "securable-claude-plugin",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Five-layer securable engineering across requirements, guardrails, code control, verification, and incident response — with eleven skills, ten agent personas, and held checks — through the FIASSE/SSEM framework (targets FIASSE v1.1).",
   "author": {
     "name": "Alton Crossley",

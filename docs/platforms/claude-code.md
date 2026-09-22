@@ -28,6 +28,22 @@ Open the interactive plugin manager with `/plugin`, then use the Discover and Ma
 
 Files land at `<plugin-root>/`: `.claude-plugin/plugin.json` (manifest), `skills/` (11 skills), `commands/` (12 slash commands), `agents/` (10 personas), `hooks/` (lifecycle hooks and scripts), `data/asvs/` (ASVS 5.0 V1-V17), `data/fiasse/` (FIASSE v1.1 sections), `core/kernel.md`, `plays/`, `templates/`, `scripts/`.
 
+### Persona plugins
+
+To install only what a role uses, pick from the persona plugins in the same marketplace instead of the all-in-one:
+
+```
+/plugin install securable-core@securable-claude-plugins          # fiasse-lookup, /securable-status, kernel + opengrep hooks
+/plugin install securable-requirements@securable-claude-plugins  # L1: PRD enhancement, threat modeling
+/plugin install securable-build@securable-claude-plugins         # L2: securable generation, dependency stewardship
+/plugin install securable-review@securable-claude-plugins        # L3: review, triage, remediation
+/plugin install securable-verify@securable-claude-plugins        # L4: verification
+/plugin install securable-incident@securable-claude-plugins      # L5: postmortem
+/plugin install securable-adoption@securable-claude-plugins      # Program: FIASSE adoption
+```
+
+Each is self-contained — it carries its own copy of the data, templates, plays, and `references/` its skills cite — so any subset works. The hooks ship only in `securable-core`. Install persona plugins **or** the all-in-one, not both, or every skill registers twice. The persona plugins are generated from `plugins.yaml` by `scripts/build_plugins.py`; see AGENTS.md.
+
 ### Repo-as-project (for plugin development)
 
 ```bash

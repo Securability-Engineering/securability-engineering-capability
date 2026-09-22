@@ -24,6 +24,7 @@ run python3 tests/securable-contract/test_validate.py
 run python3 scripts/securable_status.py --dir examples/securable
 run python3 scripts/build_bindings.py --check
 run python3 scripts/build_agents.py --check
+run python3 scripts/build_plugins.py --check
 run python3 tests/kernel_ab.py --self-test
 run python3 scripts/check_manifests.py
 run python3 - <<'EOF'
@@ -33,10 +34,11 @@ paths = [".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", ".clau
          "schema/securable/requirements.schema.json", "schema/securable/boundaries.schema.json",
          "schema/securable/policy.schema.json", "schema/securable/dependencies.schema.json",
          "hooks/hooks.json"]
+paths += glob.glob("plugins/*/.claude-plugin/plugin.json")
 paths += glob.glob("tests/*/evals/evals.json") + ["tests/kernel-ab-workspace/evals.json"]
 for p in paths:
     json.load(open(p)); print(f"ok {p}")
-for p in ["rules/opengrep/securable.yaml", "examples/securable/requirements.yaml", "examples/securable/boundaries.yaml",
+for p in ["plugins.yaml", "rules/opengrep/securable.yaml", "examples/securable/requirements.yaml", "examples/securable/boundaries.yaml",
           "examples/securable/policy.yaml", "examples/securable/dependencies.yaml"]:
     yaml.safe_load(open(p)); print(f"ok {p}")
 EOF

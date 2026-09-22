@@ -35,6 +35,7 @@ SCAN_TARGETS = [
     "commands",
     "plays",
     "templates",
+    "references",
     "examples",
     "agents",
 ]

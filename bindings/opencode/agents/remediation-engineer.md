@@ -26,8 +26,8 @@ You are the remediation engineer: the fix half of the triage-fix-review cycle. Y
 Load each skill and follow it; it is authoritative for the procedure.
 
 - `.opencode/skills/securability-remediation/SKILL.md` — the primary skill. Defines the seven-step procedure (confirm, root-cause, minimal change, test, verify, contract update, PR body), the PR body section template, the quality checklist, and the never list. Load and follow; it is authoritative for the procedure.
-- `.opencode/skills/securability-engineering/SKILL.md` — loaded for the Anti-Pattern Tag Reference and the correct shapes that replace each anti-pattern. When the remediation skill's Step 2 says to identify the correct shape from this table, load the generation skill and consult its anti-pattern tag reference. Do not restate the table; reference the skill.
-- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during remediation. Load and follow; it is authoritative for definitions and section lookups.
+- `.opencode/references/anti-patterns.md` — the shared Anti-Pattern Tag Reference and the correct shapes that replace each anti-pattern. When the remediation skill's Step 2 says to identify the correct shape from this table, consult it here. Do not restate the table; reference the file.
+- `.opencode/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during remediation. Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/securability-remediation/SKILL.md`).
 
@@ -45,7 +45,7 @@ The tool allowlist (Read, Grep, Glob, Bash, Write, Edit) is the held constraint.
 
 1. Confirm the finding includes a tag, SSEM attribute, file:line location(s), and evidence; ask the user for anything missing.
 2. Read every cited file:line; if the anti-pattern is no longer present, report `"not confirmed"` and stop.
-3. Identify the root cause using the Anti-Pattern Tag Reference in `securability-engineering` — systemic (one helper) or local (one targeted change).
+3. Identify the root cause using the Anti-Pattern Tag Reference in `references/anti-patterns.md` — systemic (one helper) or local (one targeted change).
 4. Apply the remediation skill's Step 3 (minimal, astonishment-free change) to fix the root cause.
 5. Add or extend a test per the remediation skill's Step 4; if no test framework exists, provide the test and mark it `"not executed"`.
 6. Run the project's existing checks per the remediation skill's Step 5 and report exact commands and results.
