@@ -30,6 +30,12 @@ If no PRD or feature specification exists, ask whether the user wants:
 
 Do not silently invent a PRD.
 
+## Prerequisites (check before Step 1)
+
+This play spans three FIASSE layers, and the persona plugins split them: `securability-engineering` ships in `securable-build`, `prd-securability-enhancement` (Step 1) in `securable-requirements`, and `securability-engineering-review` (Steps 3–4) in `securable-review`. The all-in-one `securable-claude-plugin` ships all three.
+
+Before Step 1, confirm both `skills/prd-securability-enhancement/SKILL.md` and `skills/securability-engineering-review/SKILL.md` are available (at the plugin root, or as installed skills). If either is missing, **do not start the loop** and do not improvise its procedure inline. Tell the user which plugin to install (`securable-requirements`, `securable-review`, or the all-in-one), and offer Default Mode single-shot generation via the `securability-engineering` skill instead. A partial loop — generation without the baseline review, or review without enhanced requirements — cannot produce the baseline/delta report this play promises.
+
 ## Steps
 
 ### Step 1 — Enhance requirements with ASVS
@@ -95,6 +101,7 @@ Use [templates/report.md](../../templates/report.md) as the structural scaffold;
 ## Workflow Guards
 
 - Do not enter this play without an explicit opt-in signal.
+- Do not start Step 1 until the Prerequisites check passes; if it fails, name the missing plugin and offer Default Mode.
 - Do not skip Step 1 once the play is active.
 - Do not generate implementation code before requirement enhancement is complete.
 - Do not skip Step 3 review before applying enhancements.
@@ -105,6 +112,7 @@ Use [templates/report.md](../../templates/report.md) as the structural scaffold;
 ## Quality Checklist
 
 - [ ] Opt-in signal received (`--full-loop`, "end-to-end securable", or explicit play reference)
+- [ ] Prerequisites confirmed: requirements and review skills available (`securable-requirements` + `securable-review`, or the all-in-one)
 - [ ] Requirements ASVS-enhanced before coding
 - [ ] Code generated with `securability-engineering` skill constraints
 - [ ] Code reviewed with `securability-engineering-review` (baseline captured)
@@ -115,10 +123,10 @@ Use [templates/report.md](../../templates/report.md) as the structural scaffold;
 
 ## References
 
-- [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md)
-- [skills/securability-engineering/SKILL.md](../../skills/securability-engineering/SKILL.md)
-- [skills/securability-engineering-review/SKILL.md](../../skills/securability-engineering-review/SKILL.md)
-- [plays/requirements-analysis/prd-fiasse-asvs-enhancement.md](../requirements-analysis/prd-fiasse-asvs-enhancement.md)
-- [plays/code-analysis/securability-engineering-review.md](../code-analysis/securability-engineering-review.md)
+- [skills/prd-securability-enhancement/SKILL.md](../../skills/prd-securability-enhancement/SKILL.md) (`securable-requirements`)
+- [skills/securability-engineering/SKILL.md](../../skills/securability-engineering/SKILL.md) (`securable-build`)
+- [skills/securability-engineering-review/SKILL.md](../../skills/securability-engineering-review/SKILL.md) (`securable-review`)
+- [plays/requirements-analysis/prd-fiasse-asvs-enhancement.md](../requirements-analysis/prd-fiasse-asvs-enhancement.md) (`securable-requirements`)
+- [plays/code-analysis/securability-engineering-review.md](../code-analysis/securability-engineering-review.md) (`securable-review`)
 - [templates/finding.md](../../templates/finding.md)
 - [templates/report.md](../../templates/report.md)

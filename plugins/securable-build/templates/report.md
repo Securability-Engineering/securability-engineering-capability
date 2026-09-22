@@ -2,7 +2,7 @@
 
 Use this scaffold to assemble the three-part output of the `securability-engineering-review` skill, or the baseline / delta / post-enhancement report from the end-to-end securable generation play.
 
-The skill at [skills/securability-engineering-review/SKILL.md](../skills/securability-engineering-review/SKILL.md) is the source of truth for the rubric (FIASSE v1.1 — 10 attributes, equal attribute weights, weakest-link floor), severity classification, and the 50-item checklist below. This template only supplies the structural shape.
+The skill at [skills/securability-engineering-review/SKILL.md](../skills/securability-engineering-review/SKILL.md) (in the `securable-review` plugin, or the all-in-one) is the source of truth for the rubric (FIASSE v1.1 — 10 attributes, equal attribute weights, weakest-link floor), severity classification, and the 50-item checklist below. This template only supplies the structural shape.
 
 Scoring conduct is governed by FIASSE v1.1 SA.4: the score is a directional management aid, not a statement of assurance or compliance.
 
@@ -289,7 +289,7 @@ architectural change, not N separate fixes.]
 
 ## Optional: Baseline / Delta / Post-Enhancement Sections
 
-When this report is the artifact of the end-to-end securable generation play (see [plays/code-generation/securable-generation.md](../plays/code-generation/securable-generation.md)), append:
+When this report is the artifact of the end-to-end securable generation play (see [plays/code-generation/securable-generation.md](../plays/code-generation/securable-generation.md), shipped by the `securable-build` plugin; skip this section when the report did not come from that play), append:
 
 ````markdown
 ## Baseline vs Post-Enhancement

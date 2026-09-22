@@ -42,7 +42,7 @@ Run the full PRD-enhance → generate → review → enhance → report workflow
 
 Otherwise stay in Default Mode. Do not invent a PRD for a small one-shot generation request.
 
-When Full Loop Mode is active, follow [plays/code-generation/securable-generation.md](../../plays/code-generation/securable-generation.md). When Default Mode is active, follow this file alone.
+When Full Loop Mode is active, follow [plays/code-generation/securable-generation.md](../../plays/code-generation/securable-generation.md), starting with its Prerequisites check: the loop also needs the requirements and review skills (the `securable-requirements` and `securable-review` plugins, or the all-in-one). If either is missing, say which plugin to install and offer Default Mode instead of running a partial loop. When Default Mode is active, follow this file alone.
 
 ## Foundational Constraints
 
