@@ -24,7 +24,7 @@ Load each skill by reading its SKILL.md and following the procedure it defines. 
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/prd-securability-enhancement/SKILL.md` — the primary skill. Covers the full enhancement procedure across all modes (full PRD, single-story, contract-diff). Load and follow; it is authoritative for the procedure. When the user's request matches a specific mode (e.g., "what changed"), load the skill and let its mode selection logic determine the operating mode rather than guessing.
 - `${CLAUDE_PLUGIN_ROOT}/skills/threat-modeling/SKILL.md` — loaded when the coverage analysis surfaces boundaries that need threat scenarios (S4.1.2 names Threat Scenarios as a requirements-time deliverable). Load and follow its procedure for scenario work; hand boundary-map-only requests to boundary-mapper. Do not load this skill speculatively — load it when the primary skill's procedure identifies a boundary that needs scenario analysis.
-- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during requirements work. Load and follow; it is authoritative for definitions and section lookups.
+- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during requirements work. Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/prd-securability-enhancement/SKILL.md`).
 

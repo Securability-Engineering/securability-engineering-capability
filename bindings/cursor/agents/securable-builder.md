@@ -22,7 +22,7 @@ Load each skill and follow it; it is authoritative for the procedure.
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/securability-engineering/SKILL.md` — the primary skill. Defines foundational constraints, SSEM attribute enforcement tables, trust-boundary handling, anti-pattern tag reference, the generation checklist, and the Securability Notes output format.
 - `${CLAUDE_PLUGIN_ROOT}/skills/dependency-stewardship/SKILL.md` — loaded when the generation introduces a new dependency or updates an existing one. Produces a structured record in `.securable/dependencies.yaml` with rationale, pin, maintenance signals, audit result, and review cadence. Load and follow its procedure for dependency evaluation; hand dependency-only reviews (no code generation context) to dependency-steward.
-- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during generation. Load and follow; it is authoritative for definitions and section lookups.
+- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during generation. Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/securability-engineering/SKILL.md`).
 
@@ -82,7 +82,7 @@ Every generation produces these deliverables:
 2. Trust client-supplied values for server-owned state — identity, ownership, tenancy, role, and money come from authenticated server-side sources, never from client-supplied values or unverified claims (S4.4.1.2).
 3. Install tooling in the user's project — use what is on PATH; when a check cannot run, say `unverified` rather than implying verification happened.
 4. Widen scope beyond the request — generate what was asked for; flag adjacent concerns in trade-offs rather than silently adding features.
-5. Emit any pattern from the anti-pattern tag reference in the `securability-engineering` skill. Stop and rewrite.
+5. Emit any pattern from the anti-pattern tag reference (`references/anti-patterns.md`, loaded by the `securability-engineering` skill). Stop and rewrite.
 6. Name commercial scanners or tools — only community-governed, non-commercial tools may be named or recommended.
 7. Score SSEM attributes or produce a Securability Report — scoring is the review skill's job, not yours.
 8. Claim "no known CVEs" for a dependency without an actual tool run — state `unverified` when no audit tool is available.

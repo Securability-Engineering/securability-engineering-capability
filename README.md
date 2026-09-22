@@ -64,6 +64,26 @@ Install through the Claude Code plugin manager: open the interactive manager wit
 /plugin install securable-claude-plugin@securable-claude-plugins
 ```
 
+The marketplace also offers **persona plugins** — one per FIASSE layer, plus a shared core and a program-level plugin — so each role installs only what it uses:
+
+| Plugin | For | Skills | Agents |
+| ------ | --- | ------ | ------ |
+| `securable-core` | Everyone (baseline) | fiasse-lookup · `/securable-status` · opt-in kernel and opengrep hooks | — |
+| `securable-requirements` | L1 — product owners, architects | prd-securability-enhancement, threat-modeling | requirements-partner, boundary-mapper |
+| `securable-build` | L2 — developers | securability-engineering, dependency-stewardship | securable-builder, dependency-steward |
+| `securable-review` | L3 — reviewers, AppSec | securability-engineering-review, securability-triage, securability-remediation | merge-steward, triage-analyst, remediation-engineer |
+| `securable-verify` | L4 — QA, release engineers | securability-verification | verification-engineer |
+| `securable-incident` | L5 — SRE, incident response | securability-postmortem | incident-learner |
+| `securable-adoption` | Program — leadership | fiasse-adoption | adoption-coach |
+| `securable-claude-plugin` | Everything above, in one install | all eleven | all ten |
+
+```text
+/plugin install securable-core@securable-claude-plugins
+/plugin install securable-review@securable-claude-plugins
+```
+
+Install either the persona plugins you need or the all-in-one `securable-claude-plugin`, not both — otherwise every skill registers twice. Each persona plugin is self-contained (its own copy of the ASVS/FIASSE data, templates, and shared references), so any one works alone; `securable-core` adds `fiasse-lookup`, which the personas use when it is present. A persona that routes to a skill another plugin ships (e.g. merge-steward → securability-verification) says so and degrades explicitly when that plugin is absent.
+
 ### Cursor
 
 `.cursor-plugin/plugin.json` declares the pack in Cursor's plugin format, with `skills` pointing at the shared `skills/` tree — in Cursor Agent chat, install with `/add-plugin` (or search "securable" in the plugin marketplace, where listed). Independent of the plugin, the always-apply securability kernel rule ships pre-generated at `bindings/cursor/securable.mdc`; copy it into your project's `.cursor/rules/` to bind every generation to the kernel.
@@ -213,7 +233,10 @@ rules/
   opengrep/securable.yaml          # Held-check rule pack mapped to the anti-pattern tags
 .claude-plugin/
   plugin.json                      # Plugin manifest (Claude Code) — canonical version source
-  marketplace.json                 # Marketplace manifest
+  marketplace.json                 # Marketplace manifest (all-in-one + persona plugins)
+plugins.yaml                       # Persona plugin split: which skills/agents/commands/assets each ships
+plugins/                           # GENERATED self-contained persona plugins (never edit)
+references/                        # Shared tables cited across skills (anti-patterns, systemic vs local, dependency hygiene)
 .cursor-plugin/
   plugin.json                      # Plugin manifest (Cursor) — kept in lockstep
 .devin-plugin/
@@ -246,6 +269,7 @@ template/
 scripts/
   build_bindings.py                # Kernel -> bindings generator (--check = CI drift guard)
   build_agents.py                  # Persona -> per-harness bindings generator (--check = CI drift guard)
+  build_plugins.py                 # plugins.yaml -> plugins/<name>/ + marketplace entries (--check = drift, coverage, closure)
   validate_securable.py            # Securable-contract validator (shape + semantics + ASVS existence)
   securable_status.py              # Contract status summary (planned/implemented/verified)
   check_refs.py                    # ASVS/FIASSE reference integrity checker
@@ -320,7 +344,7 @@ aggregator and viewer.
 
 The plugin carries its own semantic version, independent of the FIASSE version it targets.
 
-- **Plugin version** (`.claude-plugin/plugin.json`) — semver for this plugin's own behaviour. A major bump means the review output changed incompatibly. `2.0.0` is the first release of the ten-attribute, equal-weight scoring model with a weakest-link floor. The per-agent manifests (`.cursor-plugin/`, `.devin-plugin/`, and `plugins[0]` in `marketplace.json`) carry the same version; `scripts/check_manifests.py` fails CI if they drift, and `scripts/build_plugin_zip.sh` stamps all of them at release time.
+- **Plugin version** (`.claude-plugin/plugin.json`) — semver for this plugin's own behaviour. A major bump means the review output changed incompatibly. `2.0.0` is the first release of the ten-attribute, equal-weight scoring model with a weakest-link floor. The per-agent manifests (`.cursor-plugin/`, `.devin-plugin/`, and `plugins[0]` in `marketplace.json`) carry the same version; `scripts/check_manifests.py` fails CI if they drift, and `scripts/build_plugin_zip.sh` stamps all of them at release time. The persona plugins under `plugins/` and their `marketplace.json` entries are generated by `scripts/build_plugins.py` with the canonical version, so all plugins in the family move together.
 - **FIASSE target version** — the framework release the reference data is extracted from. Recorded machine-readably in the `fiasse_version` frontmatter of every file under `data/fiasse/`, and in prose here and in `CLAUDE.md`.
 
 The two moved together through `1.0.4` and no longer do. Tracking a new FIASSE release is not automatically a major plugin bump, and a scoring change is a major bump whether or not FIASSE moved.

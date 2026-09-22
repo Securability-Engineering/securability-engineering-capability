@@ -1,0 +1,177 @@
+# Persona/layer-specific plugin split.
+#
+# The repository root remains the canonical source and the all-in-one
+# `securable-claude-plugin`. Each entry below is assembled into
+# plugins/<name>/ by scripts/build_plugins.py — a self-contained copy of the
+# skills, agents, commands, and shared assets that plugin needs, laid out
+# exactly like the root so every relative path inside a skill keeps resolving.
+#
+# Never edit plugins/ by hand: edit the canonical file, then run
+#   python3 scripts/build_plugins.py          # regenerate
+#   python3 scripts/build_plugins.py --check  # CI drift + closure guard
+#
+# Keys per plugin:
+#   description  marketplace/manifest description
+#   keywords     manifest keywords (merged with the shared ones)
+#   skills       skill directory names under skills/
+#   agents       agent names under agents/ (without .md)
+#   commands     command names under commands/ (without .md)
+#   files        extra files or directories copied verbatim (repo-relative)
+#
+# Every plugin also receives LICENSE and references/ (the shared tables the
+# skills cite). Cross-plugin references are allowed only as soft routes to a
+# skill or play another plugin in this file ships; every other path a shipped
+# file cites must resolve inside the plugin, or the closure check fails.
+# Whoever ships scripts/validate_securable.py also ships schema/ and data/asvs
+# (it validates requirement IDs against the ASVS catalog).
+
+shared_keywords: [security, securability, FIASSE, SSEM, OWASP]
+
+# Repository tooling that shipped files name in comments or headers
+# (e.g. "Test: scripts/test_opengrep_rules.sh"). Not shipped, and exempt from
+# the closure check because they describe how this repo builds the file.
+repo_only:
+  - scripts/build_bindings.py
+  - scripts/build_plugins.py
+  - scripts/test_opengrep_rules.sh
+
+plugins:
+  securable-core:
+    description: >-
+      Baseline for every securable-engineering install: FIASSE/SSEM lookup
+      from the bundled framework reference, securable-contract status, and
+      the opt-in always-on kernel and opengrep held-check hooks.
+    keywords: [kernel, hooks, opengrep]
+    skills: [fiasse-lookup]
+    agents: []
+    commands: [fiasse-lookup, securable-status]
+    files:
+      - core
+      - hooks
+      - rules
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - data/asvs
+      - data/fiasse
+
+  securable-requirements:
+    description: >-
+      L1 requirements for product owners and architects: PRD securability
+      enhancement against ASVS 5.0 and threat modeling with boundary maps,
+      through the FIASSE/SSEM framework.
+    keywords: [requirements, PRD, ASVS, threat-modeling]
+    skills: [prd-securability-enhancement, threat-modeling]
+    agents: [requirements-partner, boundary-mapper]
+    commands: [prd-securability-enhance, threat-model]
+    files:
+      - plays/requirements-analysis
+      - templates/threat-model.md
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - data/asvs
+      - data/fiasse
+
+  securable-build:
+    description: >-
+      L2 guardrails for developers: securable-by-default code generation and
+      third-party dependency stewardship, through the FIASSE/SSEM framework.
+    keywords: [code-generation, secure-by-design, dependencies]
+    skills: [securability-engineering, dependency-stewardship]
+    agents: [securable-builder, dependency-steward]
+    commands: [secure-generate, dependency-steward]
+    files:
+      - plays/code-generation
+      - templates/finding.md
+      - templates/report.md
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - rules/opengrep
+      - data/asvs
+      - data/fiasse
+
+  securable-review:
+    description: >-
+      L3 code control for reviewers and AppSec: SSEM securability review,
+      scanner-output triage, and review-ready remediation patches, through
+      the FIASSE/SSEM framework.
+    keywords: [code-review, triage, remediation, SAST]
+    skills: [securability-engineering-review, securability-triage, securability-remediation]
+    agents: [merge-steward, triage-analyst, remediation-engineer]
+    commands: [securability-review, securability-triage, securability-remediate]
+    files:
+      - plays/code-analysis
+      - templates/finding.md
+      - templates/report.md
+      - templates/triage.md
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - rules/opengrep
+      - data/asvs
+      - data/fiasse
+
+  securable-verify:
+    description: >-
+      L4 pre-deployment validation for QA and release engineers: boundary
+      contract tests, deployment configuration review, and evidence-backed
+      implemented-to-verified flips, through the FIASSE/SSEM framework.
+    keywords: [verification, testing, release]
+    skills: [securability-verification]
+    agents: [verification-engineer]
+    commands: [securability-verify]
+    files:
+      - templates/finding.md
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - data/asvs
+      - data/fiasse
+
+  securable-incident:
+    description: >-
+      L5 production learning for SRE and incident responders: security
+      postmortems that yield failed attributes, regression tests, candidate
+      opengrep rules, and new requirements, through the FIASSE/SSEM framework.
+    keywords: [postmortem, incident-response]
+    skills: [securability-postmortem]
+    agents: [incident-learner]
+    commands: [securability-postmortem]
+    files:
+      - templates/postmortem.md
+      - templates/finding.md
+      - schema
+      - scripts/securable_status.py
+      - scripts/validate_securable.py
+      - docs/securable-contract.md
+      - examples/securable
+      - rules/opengrep
+      - data/asvs
+      - data/fiasse
+
+  securable-adoption:
+    description: >-
+      Program-level FIASSE adoption for leadership and program owners:
+      readiness assessment, leading and lagging indicators, role mapping,
+      and degraded-mode paths with named gaps.
+    keywords: [adoption, program, leadership]
+    skills: [fiasse-adoption]
+    agents: [adoption-coach]
+    commands: [fiasse-adoption]
+    files:
+      - schema
+      - scripts/validate_securable.py
+      - data/asvs
+      - data/fiasse

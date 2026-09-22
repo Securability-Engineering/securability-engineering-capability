@@ -1,0 +1,22 @@
+{
+  "name": "securable-adoption",
+  "description": "Program-level FIASSE adoption for leadership and program owners: readiness assessment, leading and lagging indicators, role mapping, and degraded-mode paths with named gaps.",
+  "version": "2.5.0",
+  "author": {
+    "name": "Alton Crossley",
+    "url": "https://github.com/Xcaciv"
+  },
+  "homepage": "https://github.com/Securability-Engineering/securable-claude-plugin",
+  "repository": "https://github.com/Securability-Engineering/securable-claude-plugin",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "security",
+    "securability",
+    "FIASSE",
+    "SSEM",
+    "OWASP",
+    "adoption",
+    "program",
+    "leadership"
+  ]
+}

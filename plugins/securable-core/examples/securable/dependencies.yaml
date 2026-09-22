@@ -1,0 +1,44 @@
+# Securable dependencies — example (FIASSE v1.1 S4.5, S4.6)
+# Tracks rationale, maintenance signals, audit results, and review cadence
+# for third-party dependencies. Validate with scripts/validate_securable.py.
+securable_contract: 1
+system: Customer portal
+
+dependencies:
+  - name: pyjwt
+    ecosystem: pypi
+    version: "2.8.0"
+    scope: runtime
+    used_by: [F-03]
+    rationale: JWT creation and verification for password-reset tokens; stdlib has no JWT support.
+    license: MIT
+    maintenance:
+      checked: "2026-06-15"
+      signals:
+        - "Latest release 2.8.0 on 2023-09-10"
+        - "Repository active; 32 open issues, 4 maintainers"
+      verdict: healthy
+    audit:
+      tool: pip-audit
+      checked: "2026-06-15"
+      result: clean
+      notes: "pip-audit 1.5.0 run; no known vulnerabilities for pyjwt==2.8.0"
+    next_review: "2026-12-15"
+
+  - name: structlog
+    ecosystem: pypi
+    version: "24.1.0"
+    scope: runtime
+    rationale: Structured logging for security event audit trail; stdlib logging lacks structured output without significant boilerplate.
+    license: Apache-2.0
+    maintenance:
+      checked: "2026-06-15"
+      signals:
+        - "Latest release 24.1.0 on 2024-01-05"
+        - "Active maintainer; regular release cadence"
+      verdict: healthy
+    audit:
+      tool: none
+      result: unverified
+      notes: "No pip-audit available in this environment at time of check."
+    next_review: "2026-09-15"

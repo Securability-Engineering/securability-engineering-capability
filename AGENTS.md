@@ -43,6 +43,8 @@ If `.securable/requirements.yaml` exists it is the authoritative requirements so
 
 - `core/kernel.md` — The **securability kernel**: the ~300-token always-on distillation. Single source of truth; every binding is generated from it.
 - `.claude-plugin/`, `.cursor-plugin/`, `.devin-plugin/`, `.opencode/`, `.agents/` — **Per-agent install adapters** (superpowers-style): one manifest or agent-followable `INSTALL.md` per harness, all pointing at the same `skills/` + `data/` tree. `.claude-plugin/plugin.json` is the canonical version source; `scripts/check_manifests.py` keeps the rest in lockstep.
+- `plugins.yaml` + `plugins/` — **Persona plugin split.** `plugins.yaml` declares seven persona/layer plugins (core, requirements, build, review, verify, incident, adoption); `scripts/build_plugins.py` assembles each into a **generated**, self-contained `plugins/<name>/` (same layout as the root, with its own copy of the shared assets it cites) and writes their `marketplace.json` entries. Never edit `plugins/` — edit the canonical sources and rebuild; `--check` guards drift, coverage (every skill/agent/command ships in exactly one persona plugin), and closure (every cited path resolves inside the plugin). The repo root stays the all-in-one `securable-claude-plugin`.
+- `references/` — Shared tables cited across skills (`anti-patterns.md`, `systemic-vs-local.md`, `dependency-hygiene.md`). Single source of truth; skills cite them by path instead of pointing into another skill, so each persona plugin stays self-contained.
 - `bindings/` — **Generated** per-harness kernel and persona bindings (Cursor rule + agents, Copilot instructions + agents, Gemini CLI context, Aider conventions, opencode agents, generic agents). Never edit — run `scripts/build_bindings.py` (kernel) and `scripts/build_agents.py` (personas).
 - `agents/<name>.md` — **Canonical persona definitions** (ten personas spanning all five FIASSE layers). Each carries a tool allowlist, a never list, and a fixed output artifact. `scripts/build_agents.py` generates per-harness bindings from these; `--check` is the CI drift guard.
 - `skills/<name>/SKILL.md` — Skill definitions in the [Agent Skills](https://agentskills.io) format (YAML frontmatter + instructions). These are the authoritative procedure definitions.
@@ -193,7 +195,7 @@ Only community-governed, non-commercial tools may be named or used anywhere in t
 
 ## Using This Pack With Different Tools
 
-- **Claude Code (plugin)** — install via the plugin manager (`/plugin`); skills, commands, and data ship together. Skill and command paths resolve via `${CLAUDE_PLUGIN_ROOT}`. Manifest: `.claude-plugin/plugin.json`.
+- **Claude Code (plugin)** — install via the plugin manager (`/plugin`); skills, commands, and data ship together. Skill and command paths resolve via `${CLAUDE_PLUGIN_ROOT}`. Manifest: `.claude-plugin/plugin.json`. The marketplace also lists seven persona plugins (`securable-core`, `-requirements`, `-build`, `-review`, `-verify`, `-incident`, `-adoption`) generated under `plugins/`; install those or the all-in-one, not both.
 - **Claude Code (this repo as a project)** — for plugin development, run `claude --plugin-dir .` so commands and skills load exactly as an install would.
 - **Cursor** — plugin manifest at `.cursor-plugin/plugin.json` (`skills` points at the shared `skills/` tree); the always-apply kernel rule ships pre-generated at `bindings/cursor/securable.mdc`.
 - **Devin** — `devin plugins install Securability-Engineering/securable-claude-plugin`; manifest at `.devin-plugin/plugin.json`.
@@ -210,6 +212,7 @@ python3 scripts/check_refs.py         # ASVS/FIASSE references resolve against d
 python3 tests/securable-contract/test_validate.py
 python3 scripts/build_bindings.py --check
 python3 scripts/build_agents.py --check
+python3 scripts/build_plugins.py --check  # persona plugins: drift, coverage, closure
 python3 scripts/check_manifests.py
 python3 scripts/securable_status.py --dir examples/securable
 python3 tests/kernel_ab.py --self-test
@@ -220,7 +223,7 @@ python tests/run_tests.py tests/securability-engineering-workspace --grade
 python3 tests/kernel_ab.py            # kernel A/B against the agent CLI
 ```
 
-See `tests/README.md` for workspace conventions. When changing a skill, run its workspace before and after; assertions include ASVS 5.0 numbering correctness. When changing `core/kernel.md`, rebuild bindings and re-run the A/B workspace. When changing an `agents/*.md` file, rebuild agent bindings with `scripts/build_agents.py`.
+See `tests/README.md` for workspace conventions. When changing a skill, run its workspace before and after; assertions include ASVS 5.0 numbering correctness. When changing `core/kernel.md`, rebuild bindings and re-run the A/B workspace. When changing an `agents/*.md` file, rebuild agent bindings with `scripts/build_agents.py`. After changing any file a persona plugin ships (skills, agents, commands, references, data, templates, plays, schema, hooks, core), or adding a skill/agent/command (declare it in `plugins.yaml`), run `scripts/build_plugins.py`.
 
 ## References
 

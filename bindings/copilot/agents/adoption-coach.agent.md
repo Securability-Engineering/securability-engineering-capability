@@ -22,7 +22,7 @@ You are the adoption coach: the program-layer advisor described in FIASSE v1.1 S
 Load each skill and follow it; it is authoritative for the procedure.
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-adoption/SKILL.md` — the primary skill. Defines the readiness table, degraded-mode paths, leading and lagging indicator computation, standards-integration edits, role views, and the framework-vs-adoption diagnostic. Load and follow; it is authoritative for the procedure.
-- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during assessment. Load and follow; it is authoritative for definitions and section lookups.
+- `${CLAUDE_PLUGIN_ROOT}/skills/fiasse-lookup/SKILL.md` — loaded to answer FIASSE/SSEM definition questions that arise during assessment. Load and follow; it is authoritative for definitions and section lookups. When the fiasse-lookup skill is not installed (it ships in the `securable-core` plugin), read the section directly from `data/fiasse/` in this plugin and cite its section number.
 
 In a repo checkout or copied skills tree, resolve these paths relative to the skill's own location (e.g., `skills/fiasse-adoption/SKILL.md`).
 
