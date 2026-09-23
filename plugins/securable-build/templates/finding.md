@@ -22,7 +22,7 @@ Use this structure for individual findings produced by the `securability-enginee
 
 ## Severity Definitions
 
-Severity reflects engineering impact on SSEM attribute scores and on the system's ability to remain securable. All thresholds are in **attribute points** — never pillar points, since a pillar mean moves by different amounts depending on whether it holds three or four attributes. Defined in [skills/securability-engineering-review/SKILL.md](../skills/securability-engineering-review/SKILL.md#severity-classification-for-individual-findings).
+Severity reflects engineering impact on SSEM attribute scores and on the system's ability to remain securable. All thresholds are in **attribute points** — never pillar points, since a pillar mean moves by different amounts depending on whether it holds three or four attributes. Defined in [skills/securability-engineering-review/SKILL.md](../skills/securability-engineering-review/SKILL.md#severity-classification-for-individual-findings) (shipped by the `securable-review` plugin; when it is not installed, the thresholds below are complete on their own).
 
 - **CRITICAL**: Drives a single attribute to ≤2 through systemic absence (no input parsing anywhere, no audit trail, ambient client-trust); or this finding owns the weakest attribute and the floor is binding on the overall score. Remediation requires architectural change.
 - **HIGH**: Drives a single attribute to ≤4; or reduces one attribute by ≥3.0 points. Localized but pervasive.

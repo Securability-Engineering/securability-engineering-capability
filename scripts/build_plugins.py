@@ -21,7 +21,9 @@ Guards (both modes):
   closure   every plugin-root path a shipped file cites (skills/, data/,
             templates/, references/, ...) resolves inside that plugin; a
             skills/ or plays/ reference to something another plugin ships
-            is allowed as a soft cross-plugin route, and paths listed under
+            is allowed as a soft cross-plugin route only when the citing
+            file names that plugin (`securable-...`) — i.e. states the
+            prerequisite and its degraded behaviour — and paths listed under
             repo_only in plugins.yaml (repository tooling named in comments)
             are exempt
 
@@ -66,7 +68,8 @@ TEXT_SUFFIXES = {".md", ".json", ".sh", ".py", ".yaml", ".yml"}
 # the generated README names the repository's build script by design.
 CLOSURE_SKIP_PREFIXES = ("data/",)
 CLOSURE_SKIP_FILES = {"README.md"}
-# Procedure trees another plugin may own: citing them is a soft route.
+# Procedure trees another plugin may own: citing them is a soft route, which
+# the citing file must acknowledge by naming the owning plugin.
 SOFT_ROUTE_ROOTS = {"skills", "plays"}
 
 
@@ -192,7 +195,7 @@ def check_closure(config: dict, outputs: dict[str, dict[str, bytes]]) -> list[st
     for plugin, files in outputs.items():
         present = set(files)
         elsewhere = {
-            rel for other, other_files in outputs.items() if other != plugin
+            rel: other for other, other_files in outputs.items() if other != plugin
             for rel in other_files if rel.split("/", 1)[0] in SOFT_ROUTE_ROOTS
         }
 
@@ -219,8 +222,17 @@ def check_closure(config: dict, outputs: dict[str, dict[str, bytes]]) -> list[st
                     path = "/".join(parts)
                 if path.count("/") < 1 or path in repo_only or exists(path, present):
                     continue
-                if exists(path, elsewhere):
-                    continue  # soft route to a skill or play another plugin ships
+                owners = sorted({o for f, o in elsewhere.items() if f.startswith(path)})
+                if owners:
+                    # Soft route: allowed only when the citing file names the
+                    # owning plugin, i.e. states the cross-plugin prerequisite
+                    # and what happens when that plugin is not installed.
+                    if not any(f"`{o}`" in text for o in owners):
+                        errors.append(
+                            f"closure: plugins/{plugin}/{rel} routes to {path!r} (shipped by "
+                            f"{' / '.join(owners)}) without naming that plugin — state the "
+                            "prerequisite and the degraded behaviour when it is absent")
+                    continue
                 errors.append(f"closure: plugins/{plugin}/{rel} cites {path!r}, which this plugin does not ship")
     return sorted(set(errors))
 
